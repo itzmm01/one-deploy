@@ -1,0 +1,105 @@
+# 保留备份文件数量
+backupnum: 5
+# 压缩选项
+compresstype: tgz
+# 存储选项
+storewith:
+  # 类型(暂时支持本地存储)
+  type: local
+  # 路径
+  path: /tmp/backupdir
+databases:
+    # 备份任务名
+  - name: postgresql
+    # 数据库类型
+    type: postgresql
+    # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
+    database: yc,test1
+    # 数据库IP
+    host: 127.0.0.1
+    # 端口
+    port: 5432
+    # 账号
+    username: root
+    # 密码
+    password: Amt_2018
+
+    # 备份任务名
+  - name: redis
+    # 数据库类型
+    type: redis
+    # 备份方式目前支持sync
+    mode: sync
+    # 数据库IP
+    host: 192.168.146.134
+    # 端口
+    port: 6379
+    # 密码
+    password: Amt_2018
+
+    # 备份任务名
+  - name: mongo
+    # 数据库类型
+    type: mongodb
+    # 数据库IP
+    host: 192.168.146.134
+    # 端口
+    port: 27017
+    # 账号
+    username: root
+    # 密码
+    password: Amt_2018
+    # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
+    database: alldatabase
+    # 验证用户数据库
+    authdb: "admin"
+
+    # 备份任务名
+  - name: mysql
+    # 数据库类型
+    type: mysql
+    # 数据库IP
+    host: 192.168.146.134
+    # 端口
+    port: 3306
+    # 账号
+    username: root
+    # 密码
+    password: Amt_2018
+    # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
+    database: test1,yc
+
+    # 备份任务名
+  - name: es
+    # 数据库类型
+    type: es
+    # 数据库IP
+    host: 192.168.146.134
+    # 数据库端口
+    port: 9200
+    # 账号
+    username: root
+    # 密码
+    password: Amt_2018
+    # 备份的索引,多个用英文逗号隔开
+    index: abc
+
+    # 备份任务名
+  - name: etcd
+    # 数据库类型
+    type: etcd
+    # etcd链接信息
+    host: 127.0.0.1
+    port: 49514
+    # 是否使用https, yes|no
+    https: no
+    # ca证书路径
+    cacert: /etc/etcd/ssl/ca.pem
+    # 客户端证书路径
+    cert: /etc/etcd/ssl/etcd.pem
+    # 客户端密钥路径
+    key: /etc/etcd/ssl/etcd-key.pem
+configfile:
+  - name: "mysql_cnf"
+    path: "/etc/my.cnf"
+    host: "local"    

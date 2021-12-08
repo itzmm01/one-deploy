@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"one-backup/cmd"
+	"one-backup/keygen"
 )
 
 type Mysql struct {
@@ -37,7 +38,16 @@ func (ctx *Mysql) Backup() error {
 	}
 
 	cmdStr = cmdStr + fmt.Sprintf(" > %v/%v.sql", ctx.BackupDir, ctx.Db)
-	return cmd.Run(cmdStr)
+
+	err := cmd.Run(cmdStr)
+	if err == nil {
+		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Db), fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Db))
+		cmd.Run(fmt.Sprintf("rm -f %v/%v.sql", ctx.BackupDir, ctx.Db))
+		return nil
+	} else {
+		return err
+	}
+
 }
 
 func (ctx Mysql) Restore() {

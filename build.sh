@@ -9,6 +9,6 @@ mkdir -p one-backup
 mv main one-backup/one-backup
 
 cp -rf bin one-backup/bin
-cp -rf *.yml one-backup/
+cp -rf example.yml one-backup/
 chmod +x one-backup/bin/*
 tar zcf one-backup.tar.gz one-backup/ --remove-files

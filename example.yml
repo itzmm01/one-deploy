@@ -36,6 +36,7 @@ databases:
     port: 6379
     # 密码
     password: Amt_2018
+    db: 0
 
     # 备份任务名
   - name: mongo

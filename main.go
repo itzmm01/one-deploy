@@ -68,11 +68,21 @@ func promptInformation() {
 }
 
 func main() {
-	promptInformation()
+	// promptInformation()
 
 	f := flag.String("f", "./backupdb.yml", "config file")
 	encrypt := flag.String("encrypt", "", "need encrypt string")
 	autoEncrypt := flag.String("autoEncrypt", "no", "yes|no")
+
+	restore := flag.String("restore", "no", "yes|no")
+	dbType := flag.String("type", "", "redis")
+	host := flag.String("host", "", "redis")
+	port := flag.String("port", "", "6379")
+	db := flag.String("db", "0", "0-16")
+	username := flag.String("username", "", "root")
+	password := flag.String("password", "", "xxx")
+	src := flag.String("src", "", "./1.json")
+
 	flag.Parse()
 
 	if *encrypt != "" {
@@ -98,8 +108,28 @@ func main() {
 	configFlag := strings.Replace(fileName, ".yml", "", -1)
 
 	configInfo := config.Init(*autoEncrypt, configFlag, filePath)
-	for _, dbInfo := range configInfo.Databases {
-		backupRun(configInfo, dbInfo, *autoEncrypt)
+	if *restore == "no" {
+		for _, dbInfo := range configInfo.Databases {
+			backupRun(configInfo, dbInfo, *autoEncrypt)
+		}
+	} else {
+		switch *dbType {
+		case "redis":
+			logger.Info("Restore starting")
+			rdb := database.Redis{
+				Host:      *host,
+				Port:      *port,
+				Username:  *username,
+				Password:  *password,
+				Databases: *db,
+			}
+			if err := rdb.Restore(*src); err != nil {
+				logger.Error(err)
+			} else {
+				logger.Info("Restore success")
+			}
+		}
+
 	}
 
 }

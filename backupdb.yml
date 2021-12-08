@@ -1,57 +1,13 @@
 backupnum: 5
-compresstype: tgz 
+compresstype: tgz
+configfile: []
 databases:
-- name: "mysql_cnf"
-  path: "/etc/my.cnf"
-  type: "file"
-  host: "local" 
-- database: yc,test1
-  host: 127.0.0.1
-  name: postgresql
-  password: Amt_2018
-  port: "5432"
-  type: postgresql
-  username: root
-- host: 192.168.146.134
-  mode: sync
+- db: "0"
+  host: 192.168.146.134
+  mode: json
   name: redis
-  password: Amt_2018
   port: "6379"
   type: redis
-- authdb: admin
-  database: alldatabase
-  host: 192.168.146.134
-  name: mongo
-  password: Amt_2018
-  port: "27017"
-  type: mongodb
-  username: root
-- database: test1,yc
-  host: 192.168.146.134
-  name: mysql
-  password: Amt_2018
-  port: "3306"
-  type: mysql
-  username: root
-- database: alldatabase
-  host: 192.168.146.134
-  name: mysql1
-  password: Amt_2018
-  port: "3306"
-  type: mysql
-  username: root
-- host: 192.168.146.134
-  index: zhouls
-  name: es
-  port: "9200"
-  type: es
-- cacert: /etc/etcd/ssl/ca.pem
-  cert: /etc/etcd/ssl/etcd.pem
-  host: 127.0.0.1
-  key: /etc/etcd/ssl/etcd-key.pem
-  name: etcd
-  port: "49154"
-  type: etcd
 storewith:
   path: /tmp/backupdir
   type: local

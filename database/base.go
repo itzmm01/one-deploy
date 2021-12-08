@@ -3,7 +3,6 @@ package database
 import (
 	"fmt"
 	"log"
-	"one-backup/archive"
 	"os"
 	"path/filepath"
 	"sort"
@@ -139,11 +138,14 @@ func (ctx BaseModel) Backup() {
 			Host:        ctx.DbInfo["host"],
 			Port:        ctx.DbInfo["port"],
 			Password:    ctx.DbInfo["password"],
+			Model:       ctx.DbInfo["model"],
+			Databases:   ctx.DbInfo["db"],
 		}
 
 		if err := redis.Backup(); err != nil {
 			errList = append(errList, err)
 		}
+
 	case "file":
 		file := File{
 			TarFilename: ctx.TarFilename,
@@ -169,7 +171,7 @@ func (ctx BaseModel) Backup() {
 		logger.Info("backup done", ctx.DbInfo["name"])
 	}
 
-	archive.ArchiveTar(true, ctx.SaveDir, ctx.DbInfo["name"], ctx.TarFilename)
+	// archive.ArchiveTar(true, ctx.SaveDir, ctx.DbInfo["name"], ctx.TarFilename)
 
-	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
+	// cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
 }

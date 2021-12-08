@@ -5,6 +5,10 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"io/ioutil"
+	"one-backup/tool"
+
+	"github.com/wonderivan/logger"
 )
 
 const rootKey = "bx2maw66sGUxZhA6"
@@ -54,13 +58,38 @@ func AesDecryptCBC(encrypted string) (decryptedStr string) {
 
 	return decryptedStr
 }
+
 func pkcs5Padding(ciphertext []byte, blockSize int) []byte {
 	padding := blockSize - len(ciphertext)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(ciphertext, padtext...)
 }
+
 func pkcs5UnPadding(origData []byte) []byte {
 	length := len(origData)
 	unpadding := int(origData[length-1])
 	return origData[:(length - unpadding)]
+}
+
+func ReadBlock(filePth, dstPath, op string) {
+
+	if tool.CheckFileIsExist(filePth) {
+		content, _ := ioutil.ReadFile(filePth)
+		if op == "Encrypt" {
+			tool.WriteFileA(dstPath, AesEncryptCBC(string(content)))
+		} else if op == "Decrypt" {
+			tool.WriteFileA(dstPath, AesDecryptCBC(string(content)))
+		}
+	} else {
+		logger.Error("no such file", filePth)
+	}
+
+}
+
+func AesEncryptCBCFile(srcPath, destPath string) {
+	ReadBlock(srcPath, destPath, "Encrypt")
+}
+
+func AesDecryptCBCFile(srcPath, destPath string) {
+	ReadBlock(srcPath, destPath, "Decrypt")
 }

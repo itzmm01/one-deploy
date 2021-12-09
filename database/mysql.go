@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"one-backup/cmd"
 	"one-backup/keygen"
+
+	"github.com/wonderivan/logger"
 )
 
 type Mysql struct {
@@ -50,6 +52,8 @@ func (ctx *Mysql) Backup() error {
 
 }
 
-func (ctx Mysql) Restore() {
-	fmt.Println("start Restore")
+func (ctx Mysql) Restore(filepath string) {
+	logger.Info("start Restore")
+	keygen.AesDecryptCBCFile(filepath, filepath+".output")
+	logger.Info("Restore success")
 }

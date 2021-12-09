@@ -130,6 +130,9 @@ func main() {
 			} else {
 				logger.Info("Restore success")
 			}
+		case "mysql":
+			mysql := database.Mysql{}
+			mysql.Restore(*src)
 		}
 
 	}

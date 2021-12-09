@@ -299,6 +299,15 @@ redis
 ./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
 ```
 
+mysql
+
+```mysql
+# 对加密的mysql文件进行解密,输出/tmp/backupdir/mysql/mysql/yc-Encrypt.sql.output
+./one-backup -mode restore -type mysql -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
+```
+
+
+
 ## 定期备份
 
 目前脚本不支持周期备份，可与crontab配合进行定时备份

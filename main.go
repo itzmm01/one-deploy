@@ -68,19 +68,19 @@ func promptInformation() {
 }
 
 func main() {
-	// promptInformation()
+	promptInformation()
 
 	f := flag.String("f", "./backupdb.yml", "config file")
 	encrypt := flag.String("encrypt", "", "need encrypt string")
 	autoEncrypt := flag.String("autoEncrypt", "no", "yes|no")
 
-	restore := flag.String("restore", "no", "yes|no")
-	dbType := flag.String("type", "", "redis")
-	host := flag.String("host", "", "redis")
-	port := flag.String("port", "", "6379")
-	db := flag.String("db", "0", "0-16")
-	username := flag.String("username", "", "root")
-	password := flag.String("password", "", "xxx")
+	mode := flag.String("mode", "backup", "backup|restore")
+	dbType := flag.String("type", "", "type: redis")
+	host := flag.String("host", "", "host: x.x.x.x")
+	port := flag.String("port", "", "port: 6379")
+	db := flag.String("db", "0", "database: 0")
+	username := flag.String("username", "", "username: root")
+	password := flag.String("password", "", "password: xxx")
 	src := flag.String("src", "", "./1.json")
 
 	flag.Parse()
@@ -108,11 +108,12 @@ func main() {
 	configFlag := strings.Replace(fileName, ".yml", "", -1)
 
 	configInfo := config.Init(*autoEncrypt, configFlag, filePath)
-	if *restore == "no" {
+
+	if *mode == "backup" {
 		for _, dbInfo := range configInfo.Databases {
 			backupRun(configInfo, dbInfo, *autoEncrypt)
 		}
-	} else {
+	} else if *mode == "restore" {
 		switch *dbType {
 		case "redis":
 			logger.Info("Restore starting")

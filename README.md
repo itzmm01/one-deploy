@@ -54,6 +54,6 @@ cp example.yml db.yml
 `redis`
 
 ```bash
-./one-backup -restore yes -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
+./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
 ```
 

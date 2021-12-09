@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/wonderivan/logger"
 )
 
 type Redis struct {
@@ -69,7 +70,6 @@ func (ctx Redis) Backup() error {
 	} else {
 
 		if err := BackupJson(ctx); err != nil {
-			println(err.Error())
 			return err
 		}
 		return nil
@@ -109,6 +109,9 @@ func (ctx Redis) Restore(src string) error {
 		if err := rdb.Set(ctx1, key.Key, key.Val, 0).Err(); err != nil {
 			return err
 		}
+		if key.TTL != -1 {
+			rdb.Expire(ctx1, key.Key, key.TTL)
+		}
 
 	}
 	for _, key := range allKeys.ListKey {
@@ -116,12 +119,18 @@ func (ctx Redis) Restore(src string) error {
 		if err := rdb.RPush(ctx1, key.Key, key.ListVal).Err(); err != nil {
 			return err
 		}
+		if key.TTL != -1 {
+			rdb.Expire(ctx1, key.Key, key.TTL)
+		}
 
 	}
 	for _, key := range allKeys.HashKey {
 
 		if err := rdb.HSet(ctx1, key.Key, key.HashVal).Err(); err != nil {
 			return err
+		}
+		if key.TTL != -1 {
+			rdb.Expire(ctx1, key.Key, key.TTL)
 		}
 
 	}
@@ -197,6 +206,9 @@ func BackupJson(r Redis) error {
 		}
 
 		expire, err := rdb.TTL(ctx, key).Result()
+		if err != err {
+			logger.Error(err)
+		}
 		curType.TTL = expire
 
 		if sType == "string" {
@@ -245,7 +257,7 @@ func BackupJson(r Redis) error {
 		}
 
 	}
-	if distFile, err := os.OpenFile(fmt.Sprintf("%v/dump.json", r.BackupDir), os.O_CREATE, 0666); err != nil {
+	if distFile, err := os.OpenFile(fmt.Sprintf("%v/dump.json", r.BackupDir), os.O_CREATE|os.O_WRONLY, 0666); err != nil {
 		return err
 	} else {
 		enc := json.NewEncoder(distFile)

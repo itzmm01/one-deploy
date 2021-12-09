@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"log"
+	"one-backup/archive"
 	"os"
 	"path/filepath"
 	"sort"
@@ -165,13 +166,14 @@ func (ctx BaseModel) Backup() {
 	}
 
 	if len(errList) != 0 {
+		logger.Error(errList)
 		logger.Error("backup error", ctx.DbInfo["name"])
 		return
 	} else {
 		logger.Info("backup done", ctx.DbInfo["name"])
 	}
 
-	// archive.ArchiveTar(true, ctx.SaveDir, ctx.DbInfo["name"], ctx.TarFilename)
+	archive.ArchiveTar(true, ctx.SaveDir, ctx.DbInfo["name"], ctx.TarFilename)
 
-	// cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
+	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
 }

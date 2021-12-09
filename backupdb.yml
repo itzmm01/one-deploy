@@ -3,9 +3,10 @@ compresstype: tgz
 configfile: []
 databases:
 - db: "0"
-  host: 192.168.146.134
+  host: 192.168.126.128
   mode: json
   name: redis
+  password: Amt_2018
   port: "6379"
   type: redis
 storewith:

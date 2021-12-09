@@ -3,9 +3,9 @@ package database
 import (
 	"fmt"
 	"one-backup/cmd"
+	"one-backup/ssh"
+	"strconv"
 	"strings"
-
-	"github.com/wonderivan/logger"
 )
 
 type File struct {
@@ -21,15 +21,18 @@ type File struct {
 }
 
 func (ctx File) Backup() error {
-	cmd_str := ""
 	if ctx.Host == "local" {
 		destName := strings.Split(ctx.Path, `/`)
-		cmd_str = fmt.Sprintf("/bin/cp -rf %v %v/%v", ctx.Path, ctx.BackupDir, destName[len(destName)-1])
-
+		cmd_str := fmt.Sprintf("/bin/cp -rf %v %v/%v", ctx.Path, ctx.BackupDir, destName[len(destName)-1])
+		return cmd.Run(cmd_str)
 	} else {
-		logger.Info("no support ssh")
-		return nil
+		cliConf := new(ssh.ClientConfig)
+		sshPort, _ := strconv.ParseInt(ctx.Port, 10, 64)
+		cliConf.CreateClient(ctx.Host, sshPort, ctx.Username, ctx.Password)
+		pathStrList := strings.Split(ctx.Path, `/`)
+		fileName := pathStrList[len(pathStrList)-1]
+
+		return cliConf.Download(ctx.Path, ctx.BackupDir+"/"+fileName)
 	}
 
-	return cmd.Run(cmd_str)
 }

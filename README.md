@@ -272,13 +272,15 @@ storewith:
   # 路径
   path: /tmp/backupdir
 # 配置文件备份
-configfile:
+databases:
     # 备份名
   - name: "mysql_cnf"
-    # 需要备份的配置文件
+    # 类型 配置文件填file
+    type: file
+    # 备份的配置文件路径
     path: "/etc/my.cnf"
-    # 服务器当前支持local
-    host: "local"
+    # 需要备份的服务器,local代表本机且无需账号密码
+    host: "x.x.x.x"
     # ssh端口
     port: "22"
     # ssh 账号

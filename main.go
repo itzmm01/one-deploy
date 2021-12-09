@@ -68,20 +68,19 @@ func promptInformation() {
 }
 
 func main() {
-	promptInformation()
 
-	f := flag.String("f", "./backupdb.yml", "config file")
+	configFile := flag.String("file", "./backupdb.yml", "config file")
 	encrypt := flag.String("encrypt", "", "need encrypt string")
 	autoEncrypt := flag.String("autoEncrypt", "no", "yes|no")
 
-	mode := flag.String("mode", "backup", "backup|restore")
-	dbType := flag.String("type", "", "type: redis")
-	host := flag.String("host", "", "host: x.x.x.x")
-	port := flag.String("port", "", "port: 6379")
+	mode := flag.String("mode", "backup", "run mode: backup|restore")
+	dbType := flag.String("type", "", "database type: redis|mysql|mongodb|etcd|es|postgresql")
+	host := flag.String("host", "", "database host: x.x.x.x")
+	port := flag.String("port", "", "database port: 6379")
 	db := flag.String("db", "0", "database: 0")
-	username := flag.String("username", "", "username: root")
-	password := flag.String("password", "", "password: xxx")
-	src := flag.String("src", "", "./1.json")
+	username := flag.String("username", "", "database username: root")
+	password := flag.String("password", "", "database password: xxx")
+	src := flag.String("src", "", "restore dir/file:  such '/tmp/backupdir/redis/dump.json' ")
 
 	flag.Parse()
 
@@ -90,15 +89,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	if _, err := os.Lstat(*f); err != nil {
-		logger.Error(*f, " not found!")
+	if _, err := os.Lstat(*configFile); err != nil {
+		logger.Error(*configFile, " not found!")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
+	promptInformation()
+
 	setPath()
 
-	absPath1, _ := filepath.Abs(*f)
+	absPath1, _ := filepath.Abs(*configFile)
 	absDir := strings.Replace(absPath1, "\\", "/", -1)
 
 	pathStrList := strings.Split(absDir, `/`)

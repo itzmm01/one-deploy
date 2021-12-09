@@ -44,7 +44,7 @@ cd one-backup
 chmod +x ./one-backup
 cp example.yml db.yml
 # 按照example.yml示例修改配置文件
-./one-backup -f db.yml
+./one-backup -file db.yml
 ```
 
 ### 恢复

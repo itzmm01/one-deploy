@@ -26,10 +26,18 @@
 -file： 指定备份的配置文件
 ```
 
+## 编译
+
+```bash
+# 需要go环境,拉取代码后执行,会输出one-backup.tar.gz文件
+./build.sh
+
+```
+
 ## 安装
 
 ```bash
-# 解压即可
+# 将one-backup.tar.gz上传服务器解压即可
 tar xf one-backup.tar.gz
 ```
 

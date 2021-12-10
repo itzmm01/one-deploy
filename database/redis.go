@@ -36,7 +36,7 @@ type Redis struct {
 	Port        string
 	Username    string
 	Password    string
-	Databases   string
+	Database    string
 	Model       string
 }
 type Result struct {
@@ -64,9 +64,9 @@ func (ctx Redis) Backup() error {
 		if ctx.Password != "" {
 			cmdStr = cmdStr + fmt.Sprintf("-a '%v' ", ctx.Password)
 		}
-		cmd.Run(cmdStr + " save")
+		cmd.Run(cmdStr+" save", Debug)
 		cmdStr = cmdStr + fmt.Sprintf("--rdb %v/dump.rdb", ctx.BackupDir)
-		return cmd.Run(cmdStr)
+		return cmd.Run(cmdStr, Debug)
 	} else {
 
 		if err := BackupJson(ctx); err != nil {
@@ -93,10 +93,10 @@ func (ctx Redis) Restore(src string) error {
 
 	ctx1 := context.Background()
 	r := Redis{
-		Host:      ctx.Host,
-		Port:      ctx.Port,
-		Password:  ctx.Password,
-		Databases: ctx.Databases,
+		Host:     ctx.Host,
+		Port:     ctx.Port,
+		Password: ctx.Password,
+		Database: ctx.Database,
 	}
 
 	if err := initRedis(r); err != nil {
@@ -160,7 +160,7 @@ func (ctx Redis) Restore(src string) error {
 func initRedis(r Redis) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	db, _ := strconv.Atoi(string(r.Databases))
+	db, _ := strconv.Atoi(string(r.Database))
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%v:%v", r.Host, r.Port),
 		Password: r.Password,

@@ -293,17 +293,16 @@ databases:
 
 暂时只支持redis-json格式的恢复
 
-redis
+### redis
 
 ```bash
 ./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
 ```
 
-mysql
+### mysql
 
-```mysql
-# 对加密的mysql文件进行解密,输出/tmp/backupdir/mysql/mysql/yc-Encrypt.sql.output
-./one-backup -mode restore -type mysql -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
+```bash
+./one-backup -mode restore -type mysql -host 192.168.146.134 -port 3316 -username root -password xxx -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
 ```
 
 

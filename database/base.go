@@ -12,6 +12,8 @@ import (
 	"github.com/wonderivan/logger"
 )
 
+const Debug = false
+
 type BaseModel struct {
 	TarFilename string
 	SaveDir     string
@@ -59,7 +61,7 @@ func (ctx BaseModel) Backup() {
 				Port:        ctx.DbInfo["port"],
 				Username:    ctx.DbInfo["username"],
 				Password:    ctx.DbInfo["password"],
-				Db:          db,
+				Database:    db,
 			}
 			if err := mysql.Backup(); err != nil {
 				errList = append(errList, err)
@@ -140,7 +142,7 @@ func (ctx BaseModel) Backup() {
 			Port:        ctx.DbInfo["port"],
 			Password:    ctx.DbInfo["password"],
 			Model:       ctx.DbInfo["model"],
-			Databases:   ctx.DbInfo["db"],
+			Database:    ctx.DbInfo["db"],
 		}
 
 		if err := redis.Backup(); err != nil {

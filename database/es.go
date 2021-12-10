@@ -33,7 +33,7 @@ func (ctx *Elasticsearch) Backup() error {
 		cmdStr = fmt.Sprintf("elasticdump --input=http://%v:%v/%v --output=/%v/%v.json --all=true ", ctx.Host, ctx.Port, ctx.Index, ctx.BackupDir, ctx.Index)
 	}
 
-	return cmd.Run(cmdStr)
+	return cmd.Run(cmdStr, Debug)
 }
 
 func (es *Elasticsearch) Restore() {

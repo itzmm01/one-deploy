@@ -41,5 +41,5 @@ func (ctx Postgresql) Backup() error {
 	}
 
 	cmdStr = cmdStr + fmt.Sprintf("-d %v -f %v/%v.sql", ctx.Db, ctx.BackupDir, ctx.Db)
-	return cmd.Run(cmdStr)
+	return cmd.Run(cmdStr, Debug)
 }

@@ -47,5 +47,5 @@ func (ctx Mongodb) Backup() error {
 	}
 
 	cmdStr = cmdStr + fmt.Sprintf("-o  %v/ ", ctx.BackupDir)
-	return cmd.Run(cmdStr)
+	return cmd.Run(cmdStr, Debug)
 }

@@ -15,7 +15,7 @@ const (
 	GB18030 = Charset("GB18030")
 )
 
-func Run(command string) error {
+func Run(command string, debug bool) error {
 	var result []byte
 	var err error
 
@@ -30,8 +30,11 @@ func Run(command string) error {
 	}
 
 	if err != nil {
-		logger.Error("run cmd failed: ", command)
+		if debug {
+			logger.Error("run cmd failed: ", command)
+		}
 		logger.Error("run cmd failed: ", err, ConvertByte2String(result, "GB18030"))
+
 	}
 	return err
 }

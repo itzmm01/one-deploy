@@ -15,7 +15,6 @@ type ModelConfig struct {
 	CompressType string
 	BackupNum    int
 	Databases    []map[string]string
-	ConfigFile   []map[string]string
 	Viper        *viper.Viper
 }
 
@@ -31,9 +30,9 @@ func passBase(autoEncrypt, pass string) string {
 		return pass
 	}
 
-	passStr := keygen.AesDecryptCBC(strings.Replace(pass, " ", "", -1))
+	passStr := keygen.AesDecryptCBC(strings.Replace(pass, " ", "", -1), "pass")
 	if passStr == "base64 error" {
-		return keygen.AesEncryptCBC(strings.Replace(pass, " ", "", -1))
+		return keygen.AesEncryptCBC(strings.Replace(pass, " ", "", -1), "pass")
 	} else {
 		return pass
 	}
@@ -94,27 +93,6 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		config.Databases = append(config.Databases, tmp1)
 	}
 	viper.Set("databases", config.Databases)
-	switch viper.Get("configfile").(type) {
-	case []interface{}:
-		configfileList := viper.Get("configfile").([]interface{})
-		for _, configfile := range configfileList {
-			tmp1 := map[string]string{}
-			for k, v := range configfile.(map[interface{}]interface{}) {
-				tmp1[k.(string)] = v.(string)
-			}
-			config.ConfigFile = append(config.ConfigFile, tmp1)
-		}
-	case []map[string]string:
-		configfileList := viper.Get("configfile")
-		for _, configfile := range configfileList.([]map[string]string) {
-			tmp1 := map[string]string{}
-			for k, v := range configfile {
-				tmp1[k] = v
-			}
-			config.ConfigFile = append(config.ConfigFile, tmp1)
-		}
-	}
-	viper.Set("configfile", config.ConfigFile)
 	viper.WriteConfigAs(filepath + "/" + filename + ".yml")
 	return config
 }

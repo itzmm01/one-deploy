@@ -3,6 +3,7 @@ package tool
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -32,4 +33,19 @@ func WriteFileA(filePath, contentA string) {
 	write.WriteString(contentA)
 	//Flush将缓存的文件真正写入到文件中
 	write.Flush()
+}
+
+func randomInt(min, max int) int {
+	return min + rand.Intn(max-min)
+}
+
+/*
+ * 生成随机字符串
+ */
+func RandomString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		bytes[i] = byte(randomInt(65, 90))
+	}
+	return string(bytes)
 }

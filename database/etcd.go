@@ -58,5 +58,5 @@ func (ctx Etcd) Backup() error {
 			ctx.Host, ctx.Port, ctx.BackupDir,
 		)
 	}
-	return cmd.Run(cmdStr)
+	return cmd.Run(cmdStr, Debug)
 }

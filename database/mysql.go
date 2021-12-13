@@ -30,7 +30,7 @@ type Mysql struct {
 
 func (ctx *Mysql) Backup() error {
 	cmdStr := fmt.Sprintf(
-		"mysqldump -h %v -P %v -u%v -p'%v' ", ctx.Host, ctx.Port, ctx.Username, ctx.Password,
+		"mysqldump --lock-tables=0 -h %v -P %v -u%v -p'%v' ", ctx.Host, ctx.Port, ctx.Username, ctx.Password,
 	)
 	if ctx.Database == "alldatabase" {
 		cmdStr = cmdStr + "--all-databases "

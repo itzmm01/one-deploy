@@ -49,6 +49,7 @@ func AesDecryptCBC(encrypted, model string) (decryptedStr string) {
 		key: 秘钥键
 		NewCipher该函数限制了输入k的长度必须为16, 24或者32
 	*/
+
 	key := generateKey(model)
 	block, _ := aes.NewCipher(key)                             // 分组秘钥
 	blockMode := cipher.NewCBCDecrypter(block, []byte(rootIV)) // 加密模式
@@ -56,7 +57,13 @@ func AesDecryptCBC(encrypted, model string) (decryptedStr string) {
 	if err != nil {
 		return "base64 error"
 	}
-	decrypted := make([]byte, len(encryptedBytes))   // 创建数组
+
+	decrypted := make([]byte, len(encryptedBytes)) // 创建数组
+	defer func() {
+		if err := recover(); err != nil {
+			decryptedStr = encrypted
+		}
+	}()
 	blockMode.CryptBlocks(decrypted, encryptedBytes) // 解密
 	decrypted = pkcs5UnPadding(decrypted)            // 去除补全码
 	decryptedStr = string(decrypted)

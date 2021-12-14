@@ -3,6 +3,8 @@ package database
 import (
 	"fmt"
 	"one-backup/cmd"
+	"one-backup/keygen"
+	"one-backup/tool"
 	"os"
 )
 
@@ -41,5 +43,34 @@ func (ctx Postgresql) Backup() error {
 	}
 
 	cmdStr = cmdStr + fmt.Sprintf("-d %v -f %v/%v.sql", ctx.Db, ctx.BackupDir, ctx.Db)
-	return cmd.Run(cmdStr, Debug)
+
+	if err := cmd.Run(cmdStr, Debug); err == nil {
+		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Db), fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Db))
+		return cmd.Run(fmt.Sprintf("rm -f %v/%v.sql", ctx.BackupDir, ctx.Db), false)
+	} else {
+		return err
+	}
+}
+
+func (ctx Postgresql) Restore(filePath string) error {
+	dstPath := "/tmp/" + tool.RandomString(30)
+	keygen.AesDecryptCBCFile(filePath, dstPath)
+
+	cmdStr := fmt.Sprintf("psql  -h %v -p %v -U %v ", ctx.Host, ctx.Port, ctx.Username)
+	cmdStrCreate := fmt.Sprintf("num=`%v -c '\\l'|grep %v|wc -l`; if [ $num -eq 0 ]; then %v -c 'CREATE DATABASE %v'; fi", cmdStr, ctx.Db, cmdStr, ctx.Db)
+	cmdStrRestore := cmdStr + fmt.Sprintf("-d %v -f %v", ctx.Db, dstPath)
+
+	if ctx.Password != "" {
+		os.Setenv("PGPASSWORD", ctx.Password)
+	}
+
+	if err := cmd.Run(cmdStrCreate, true); err != nil {
+		return err
+	}
+
+	if err := cmd.Run(cmdStrRestore, true); err != nil {
+		return err
+	} else {
+		return cmd.Run("rm -f "+dstPath, false)
+	}
 }

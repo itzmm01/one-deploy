@@ -29,15 +29,15 @@ databases:
     # 数据库类型
     type: redis
     # 备份方式目前支持rdb,json
-    mode: rdb
+    mode: json
     # 数据库IP
     host: 192.168.146.134
     # 端口
     port: 6379
     # 密码
     password: Amt_2018
-    # 数据库
-    db: 0
+    # 需要备份的数据库，多个用英文逗号隔开(json格式有效)
+    database: 0
 
     # 备份任务名
   - name: mongo

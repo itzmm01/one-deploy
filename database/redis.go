@@ -162,7 +162,7 @@ func (ctx Redis) RestoreJson(filepath string) error {
 }
 
 func initRedis(r Redis) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3600)
 	defer cancel()
 	db, _ := strconv.Atoi(string(r.Database))
 	rdb = redis.NewClient(&redis.Options{
@@ -261,14 +261,14 @@ func BackupJson(r Redis) error {
 		}
 
 	}
-	if distFile, err := os.OpenFile(fmt.Sprintf("%v/dump.json", r.BackupDir), os.O_CREATE|os.O_WRONLY, 0666); err != nil {
+	if distFile, err := os.OpenFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), os.O_CREATE|os.O_WRONLY, 0666); err != nil {
 		return err
 	} else {
 		enc := json.NewEncoder(distFile)
 		if err := enc.Encode(allKeys); err != nil {
 			return err
 		}
-		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/dump.json", r.BackupDir), fmt.Sprintf("%v/dump-Encrypt.json", r.BackupDir))
-		return cmd.Run(fmt.Sprintf("rm -f %v/dump.json", r.BackupDir), Debug)
+		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), fmt.Sprintf("%v/%v-Encrypt.json", r.BackupDir, r.Database))
+		return cmd.Run(fmt.Sprintf("rm -f %v/%v.json", r.BackupDir, r.Database), Debug)
 	}
 }

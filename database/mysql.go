@@ -51,9 +51,14 @@ func (ctx *Mysql) Backup() error {
 }
 
 func (ctx Mysql) Restore(filepath string) error {
-	dstPath := "/tmp/" + tool.RandomString(20)
+	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filepath, dstPath)
-	cmd_str := fmt.Sprintf("cat '%v' | mysql -h %v -P %v -u%v -p%v  ; rm -f %v", dstPath, ctx.Host, ctx.Port, ctx.Username, ctx.Password, dstPath)
-	return cmd.Run(cmd_str, Debug)
+	cmdStr := fmt.Sprintf("cat '%v' | mysql -h %v -P %v -u%v -p%v", dstPath, ctx.Host, ctx.Port, ctx.Username, ctx.Password)
+
+	if err := cmd.Run(cmdStr, Debug); err != nil {
+		return err
+	} else {
+		return cmd.Run("rm -f "+dstPath, false)
+	}
 
 }

@@ -47,6 +47,7 @@ func cleanHistoryFile(path, match string, saveNum int) {
 		}
 	}
 }
+
 func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
 	if dbinfo["password"] != "" && autoEncrypt == "yes" {
 		dbinfo["password"] = keygen.AesDecryptCBC(dbinfo["password"], "pass")
@@ -64,12 +65,73 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 	if _, err := os.Stat(base.BackupDir); err != nil {
 		err := os.MkdirAll(base.BackupDir, 0755)
 		if err != nil {
-			return
+			logger.Error(err)
 		}
 	}
 
 	base.Backup()
 }
+
+func Restore(dbType, host, port, username, password, db, src string) error {
+	logger.Info("Restore starting")
+	switch dbType {
+	case "redis":
+		rdb := Redis{
+			Host:     host,
+			Port:     port,
+			Username: username,
+			Password: password,
+			Database: db,
+		}
+		if err := rdb.RestoreJson(src); err != nil {
+			logger.Error(err)
+			return err
+		}
+	case "mysql":
+		mysql := Mysql{
+			Host:     host,
+			Port:     port,
+			Username: username,
+			Password: password,
+			Database: db,
+		}
+		if err := mysql.Restore(src); err != nil {
+			logger.Error(err)
+			return err
+		}
+	case "es":
+		es := Elasticsearch{
+			Host:     host,
+			Port:     port,
+			Username: username,
+			Password: password,
+		}
+		if err := es.Restore(src); err != nil {
+			logger.Error(err)
+			return err
+		}
+	case "postgresql":
+		postgresql := Postgresql{
+			Host:     host,
+			Port:     port,
+			Username: username,
+			Password: password,
+			Db:       db,
+		}
+		if err := postgresql.Restore(src); err != nil {
+			logger.Error(err)
+			return err
+		}
+	default:
+		logger.Info("no support db: ", dbType)
+		return nil
+	}
+
+	logger.Info("Restore success")
+	return nil
+
+}
+
 func (ctx BaseModel) Backup() {
 	var errList []error
 
@@ -160,21 +222,22 @@ func (ctx BaseModel) Backup() {
 			}
 		}
 	case "redis":
-		redis := Redis{
-			TarFilename: ctx.TarFilename,
-			SaveDir:     ctx.SaveDir,
-			BackupDir:   ctx.BackupDir,
-			Host:        ctx.DbInfo["host"],
-			Port:        ctx.DbInfo["port"],
-			Password:    ctx.DbInfo["password"],
-			Model:       ctx.DbInfo["model"],
-			Database:    ctx.DbInfo["db"],
-		}
+		for _, db := range databaseList {
+			redis := Redis{
+				TarFilename: ctx.TarFilename,
+				SaveDir:     ctx.SaveDir,
+				BackupDir:   ctx.BackupDir,
+				Host:        ctx.DbInfo["host"],
+				Port:        ctx.DbInfo["port"],
+				Password:    ctx.DbInfo["password"],
+				Model:       ctx.DbInfo["model"],
+				Database:    db,
+			}
 
-		if err := redis.Backup(); err != nil {
-			errList = append(errList, err)
+			if err := redis.Backup(); err != nil {
+				errList = append(errList, err)
+			}
 		}
-
 	case "file":
 		file := File{
 			TarFilename: ctx.TarFilename,

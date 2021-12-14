@@ -146,15 +146,15 @@ databases:
     # 数据库类型
     type: redis
     # 备份方式目前支持rdb,json
-    mode: rdb
+    mode: json
     # 数据库IP
     host: 192.168.146.134
     # 端口
     port: 6379
     # 密码
     password: Amt_2018
-    # 数据库
-    db: 0
+    # 需要备份的数据库，多个用英文逗号隔开(json格式有效)
+    database: 0
 ```
 
 #### mongo
@@ -311,6 +311,18 @@ databases:
 
 ```bash
 ./one-backup -mode restore -type mysql -host 192.168.146.134 -port 3316 -username root -password xxx -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
+```
+
+### es
+
+```bash
+./one-backup -mode restore -type es -host 192.168.146.134 -port 9200 -src /tmp/backupdir/es/es-2021.12.14.11.24.08/test111-Encrypt.json
+```
+
+### postgresql
+
+```bash
+./one-backup -mode restore -type postgresql -host 192.168.146.134 -port 5432 -username root -password xxx -db test1 -src /tmp/backupdir/postgresql/postgresql-2021.12.14.12.39.32/test1-Encrypt.sql
 ```
 
 

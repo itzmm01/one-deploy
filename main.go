@@ -89,41 +89,12 @@ func main() {
 		configFlag := strings.Replace(fileName, ".yml", "", -1)
 
 		configInfo := config.Init(*autoEncrypt, configFlag, filePath)
+
 		for _, dbInfo := range configInfo.Databases {
 			database.Run(configInfo, dbInfo, *autoEncrypt)
 		}
 	} else if *mode == "restore" {
-		logger.Info("Restore starting")
-		switch *dbType {
-		case "redis":
-
-			rdb := database.Redis{
-				Host:     *host,
-				Port:     *port,
-				Username: *username,
-				Password: *password,
-				Database: *db,
-			}
-			if err := rdb.RestoreJson(*src); err != nil {
-				logger.Error(err)
-			} else {
-				logger.Info("Restore success")
-			}
-		case "mysql":
-			mysql := database.Mysql{
-				Host:     *host,
-				Port:     *port,
-				Username: *username,
-				Password: *password,
-				Database: *db,
-			}
-			if err := mysql.Restore(*src); err != nil {
-				logger.Error(err)
-			} else {
-				logger.Info("Restore success")
-			}
-		}
-
+		database.Restore(*dbType, *host, *port, *username, *password, *db, *src)
 	}
 
 }

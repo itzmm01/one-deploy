@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"time"
 )
 
 /**
@@ -22,7 +23,7 @@ func WriteFileA(filePath, contentA string) {
 	if !CheckFileIsExist(filePath) {
 		os.Create(filePath)
 	}
-	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_TRUNC, 0666)
 	if err != nil {
 		fmt.Println("文件打开失败", err)
 	}
@@ -35,17 +36,15 @@ func WriteFileA(filePath, contentA string) {
 	write.Flush()
 }
 
-func randomInt(min, max int) int {
-	return min + rand.Intn(max-min)
-}
-
 /*
  * 生成随机字符串
  */
 func RandomString(len int) string {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
 	bytes := make([]byte, len)
 	for i := 0; i < len; i++ {
-		bytes[i] = byte(randomInt(65, 90))
+		b := r.Intn(26) + 65
+		bytes[i] = byte(b)
 	}
 	return string(bytes)
 }

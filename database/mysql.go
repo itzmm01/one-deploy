@@ -54,6 +54,6 @@ func (ctx Mysql) Restore(filepath string) error {
 	dstPath := "/tmp/" + tool.RandomString(20)
 	keygen.AesDecryptCBCFile(filepath, dstPath)
 	cmd_str := fmt.Sprintf("cat '%v' | mysql -h %v -P %v -u%v -p%v  ; rm -f %v", dstPath, ctx.Host, ctx.Port, ctx.Username, ctx.Password, dstPath)
-	return cmd.Run(cmd_str, true)
+	return cmd.Run(cmd_str, Debug)
 
 }

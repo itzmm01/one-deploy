@@ -18,29 +18,6 @@ import (
 
 const Debug = false
 
-func backupRun(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
-	if dbinfo["password"] != "" && autoEncrypt == "yes" {
-		dbinfo["password"] = keygen.AesDecryptCBC(dbinfo["password"], "pass")
-	}
-
-	base := database.BaseModel{
-		TarFilename: fmt.Sprintf("%v/%v/%v-%v.tar.gz", configInfo.StoreWith["path"], dbinfo["type"], dbinfo["name"], time.Now().Format("2006.01.02.15.04.05")),
-		SaveDir:     fmt.Sprintf("%v/%v/", configInfo.StoreWith["path"], dbinfo["type"]),
-		BackupDir:   fmt.Sprintf("%v/%v/%v", configInfo.StoreWith["path"], dbinfo["type"], dbinfo["name"]),
-		BackupNum:   configInfo.BackupNum,
-		DbInfo:      dbinfo,
-	}
-
-	if _, err := os.Stat(base.BackupDir); err != nil {
-		err := os.MkdirAll(base.BackupDir, 0755)
-		if err != nil {
-			return
-		}
-	}
-
-	base.Backup()
-}
-
 func setPath() {
 	// 配置BIN环境变量
 	absPath1, _ := filepath.Abs("./")
@@ -113,7 +90,7 @@ func main() {
 
 		configInfo := config.Init(*autoEncrypt, configFlag, filePath)
 		for _, dbInfo := range configInfo.Databases {
-			backupRun(configInfo, dbInfo, *autoEncrypt)
+			database.Run(configInfo, dbInfo, *autoEncrypt)
 		}
 	} else if *mode == "restore" {
 		logger.Info("Restore starting")
@@ -127,7 +104,7 @@ func main() {
 				Password: *password,
 				Database: *db,
 			}
-			if err := rdb.Restore(*src); err != nil {
+			if err := rdb.RestoreJson(*src); err != nil {
 				logger.Error(err)
 			} else {
 				logger.Info("Restore success")

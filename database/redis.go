@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"one-backup/cmd"
+	"one-backup/keygen"
+	"one-backup/tool"
 	"os"
 	"strconv"
 	"time"
@@ -76,10 +78,12 @@ func (ctx Redis) Backup() error {
 	}
 
 }
-func (ctx Redis) Restore(src string) error {
-	jsonFile, err := os.Open(src)
+func (ctx Redis) RestoreJson(filepath string) error {
+	dstPath := "/tmp/" + tool.RandomString(30)
+	keygen.AesDecryptCBCFile(filepath, dstPath)
 
-	// 最好要处理以下错误
+	jsonFile, err := os.Open(dstPath)
+
 	if err != nil {
 		return err
 	}
@@ -106,7 +110,7 @@ func (ctx Redis) Restore(src string) error {
 
 	for _, key := range allKeys.StringKey {
 
-		if err := rdb.Set(ctx1, key.Key, key.Val, 0).Err(); err != nil {
+		if err := rdb.Set(ctx1, key.Key, key.Val, -1).Err(); err != nil {
 			return err
 		}
 		if key.TTL != -1 {
@@ -154,7 +158,7 @@ func (ctx Redis) Restore(src string) error {
 
 	}
 
-	return nil
+	return cmd.Run(fmt.Sprintf("rm -f %v", dstPath), false)
 }
 
 func initRedis(r Redis) (err error) {
@@ -206,7 +210,7 @@ func BackupJson(r Redis) error {
 		}
 
 		expire, err := rdb.TTL(ctx, key).Result()
-		if err != err {
+		if err != nil {
 			logger.Error(err)
 		}
 		curType.TTL = expire
@@ -264,6 +268,7 @@ func BackupJson(r Redis) error {
 		if err := enc.Encode(allKeys); err != nil {
 			return err
 		}
+		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/dump.json", r.BackupDir), fmt.Sprintf("%v/dump-Encrypt.json", r.BackupDir))
+		return cmd.Run(fmt.Sprintf("rm -f %v/dump.json", r.BackupDir), Debug)
 	}
-	return nil
 }

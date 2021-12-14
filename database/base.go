@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 	"one-backup/archive"
+	"one-backup/config"
+	"one-backup/keygen"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/wonderivan/logger"
 )
@@ -43,6 +46,29 @@ func cleanHistoryFile(path, match string, saveNum int) {
 			}
 		}
 	}
+}
+func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
+	if dbinfo["password"] != "" && autoEncrypt == "yes" {
+		dbinfo["password"] = keygen.AesDecryptCBC(dbinfo["password"], "pass")
+	}
+
+	nameDir := fmt.Sprintf("%v-%v", dbinfo["type"], time.Now().Format("2006.01.02.15.04.05"))
+	base := BaseModel{
+		TarFilename: fmt.Sprintf("%v/%v/%v.tar.gz", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
+		SaveDir:     fmt.Sprintf("%v/%v/", configInfo.StoreWith["path"], dbinfo["type"]),
+		BackupDir:   fmt.Sprintf("%v/%v/%v", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
+		BackupNum:   configInfo.BackupNum,
+		DbInfo:      dbinfo,
+	}
+
+	if _, err := os.Stat(base.BackupDir); err != nil {
+		err := os.MkdirAll(base.BackupDir, 0755)
+		if err != nil {
+			return
+		}
+	}
+
+	base.Backup()
 }
 func (ctx BaseModel) Backup() {
 	var errList []error
@@ -175,7 +201,8 @@ func (ctx BaseModel) Backup() {
 		logger.Info("backup done", ctx.DbInfo["name"])
 	}
 
-	archive.ArchiveTar(true, ctx.SaveDir, ctx.DbInfo["name"], ctx.TarFilename)
+	BackupDirName := strings.Split(ctx.BackupDir, `/`)
+	archive.ArchiveTar(true, ctx.SaveDir, BackupDirName[len(BackupDirName)-1], ctx.TarFilename)
 
 	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
 }

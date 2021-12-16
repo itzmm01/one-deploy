@@ -2,13 +2,13 @@ backupnum: 5
 compresstype: tgz
 configfile: []
 databases:
-- host: 192.168.146.134
-  name: mysql_cnf
-  password: Amt_2018
-  path: /etc/my.cnf
-  port: "22"
-  type: file
-  username: root
+- database: "0"
+  host: 192.168.146.134
+  mode: json
+  name: redis
+  password: NQtnTK/iFyj/SAkAP5Ze85swvDKPEkgJ143SH6KM54UYJjHxeFOdhmolHZ9X6eYY
+  port: "6379"
+  type: redis
 storewith:
   path: /tmp/backupdir
   type: local

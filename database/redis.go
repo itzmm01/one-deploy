@@ -1,10 +1,11 @@
 package database
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"one-backup/cmd"
 	"one-backup/keygen"
 	"one-backup/tool"
@@ -82,19 +83,16 @@ func (ctx Redis) RestoreJson(filepath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filepath, dstPath)
 
-	jsonFile, err := os.Open(dstPath)
-
+	f, err := os.Open(dstPath)
 	if err != nil {
 		return err
 	}
-
 	// 要记得关闭
-	defer jsonFile.Close()
-	byteValue, _ := ioutil.ReadAll(jsonFile)
+	defer f.Close()
 
-	allKeys := AllKey{}
-	json.Unmarshal(byteValue, &allKeys)
-
+	// 对于小于4096字节的数据，它会将所有文件内容读取到缓冲区，但对于大文件，只读取4096字节
+	buf := bufio.NewReader(f)
+	num := 0
 	ctx1 := context.Background()
 	r := Redis{
 		Host:     ctx.Host,
@@ -102,63 +100,79 @@ func (ctx Redis) RestoreJson(filepath string) error {
 		Password: ctx.Password,
 		Database: ctx.Database,
 	}
-
 	if err := initRedis(r); err != nil {
 		fmt.Println("init redis failed err :", err)
 		return err
 	}
+	for {
+		num += 1
+		// 按行读取
+		line, err := buf.ReadString('\n')
+		byteValue := []byte(line)
 
-	for _, key := range allKeys.StringKey {
+		allKeys := AllKey{}
+		json.Unmarshal(byteValue, &allKeys)
 
-		if err := rdb.Set(ctx1, key.Key, key.Val, -1).Err(); err != nil {
+		for _, key := range allKeys.StringKey {
+
+			if err := rdb.Set(ctx1, key.Key, key.Val, -1).Err(); err != nil {
+				return err
+			}
+			if key.TTL != -1 {
+				rdb.Expire(ctx1, key.Key, key.TTL)
+			}
+
+		}
+		for _, key := range allKeys.ListKey {
+
+			if err := rdb.RPush(ctx1, key.Key, key.ListVal).Err(); err != nil {
+				return err
+			}
+			if key.TTL != -1 {
+				rdb.Expire(ctx1, key.Key, key.TTL)
+			}
+
+		}
+		for _, key := range allKeys.HashKey {
+
+			if err := rdb.HSet(ctx1, key.Key, key.HashVal).Err(); err != nil {
+				return err
+			}
+			if key.TTL != -1 {
+				rdb.Expire(ctx1, key.Key, key.TTL)
+			}
+
+		}
+		for _, key := range allKeys.SetKey {
+			rdb.SAdd(ctx1, key.Key, key.ListVal)
+
+		}
+
+		for _, key := range allKeys.ZsetKey {
+			ranking := []*redis.Z{}
+			for index, val := range key.ZsetVal {
+				a := &redis.Z{}
+				a.Score = float64(index)
+				a.Member = val
+				ranking = append(ranking, a)
+
+			}
+			if err := rdb.ZAdd(ctx1, key.Key, ranking...).Err(); err != nil {
+				return err
+			}
+
+		}
+		if err != nil {
+			if err == io.EOF {
+				f.Close()
+				break
+			}
+			f.Close()
 			return err
 		}
-		if key.TTL != -1 {
-			rdb.Expire(ctx1, key.Key, key.TTL)
-		}
-
-	}
-	for _, key := range allKeys.ListKey {
-
-		if err := rdb.RPush(ctx1, key.Key, key.ListVal).Err(); err != nil {
-			return err
-		}
-		if key.TTL != -1 {
-			rdb.Expire(ctx1, key.Key, key.TTL)
-		}
-
-	}
-	for _, key := range allKeys.HashKey {
-
-		if err := rdb.HSet(ctx1, key.Key, key.HashVal).Err(); err != nil {
-			return err
-		}
-		if key.TTL != -1 {
-			rdb.Expire(ctx1, key.Key, key.TTL)
-		}
-
-	}
-	for _, key := range allKeys.SetKey {
-		rdb.SAdd(ctx1, key.Key, key.ListVal)
-
 	}
 
-	for _, key := range allKeys.ZsetKey {
-		ranking := []*redis.Z{}
-		for index, val := range key.ZsetVal {
-			a := &redis.Z{}
-			a.Score = float64(index)
-			a.Member = val
-			ranking = append(ranking, a)
-
-		}
-		if err := rdb.ZAdd(ctx1, key.Key, ranking...).Err(); err != nil {
-			return err
-		}
-
-	}
-
-	return cmd.Run(fmt.Sprintf("rm -f %v", dstPath), false)
+	return os.Remove(dstPath)
 }
 
 func initRedis(r Redis) (err error) {
@@ -166,10 +180,11 @@ func initRedis(r Redis) (err error) {
 	defer cancel()
 	db, _ := strconv.Atoi(string(r.Database))
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("%v:%v", r.Host, r.Port),
-		Password: r.Password,
-		DB:       db,
-		PoolSize: 200,
+		Addr:         fmt.Sprintf("%v:%v", r.Host, r.Port),
+		Password:     r.Password,
+		DB:           db,
+		PoolSize:     20,
+		MinIdleConns: 10,
 	})
 	_, err = rdb.Ping(ctx).Result()
 	if err != nil {
@@ -185,90 +200,92 @@ func BackupJson(r Redis) error {
 	ctx := context.Background()
 
 	var cursor uint64
-	var keysList []string
 
-	allKeys := AllKey{}
 	for {
 		var err error
 		var keys []string
-		//*扫描所有key，每次20条
+
+		allKeys := AllKey{}
 		keys, cursor, err = rdb.Scan(ctx, cursor, "*", 10).Result()
 		if err != nil {
 			panic(err)
 		}
-		keysList = append(keysList, keys...)
+
+		for _, key := range keys {
+			curType := Result{}
+			sType, err := rdb.Type(ctx, key).Result()
+			if err != nil {
+				return err
+			}
+
+			expire, err := rdb.TTL(ctx, key).Result()
+			if err != nil {
+				logger.Error(err)
+			}
+			curType.TTL = expire
+
+			if sType == "string" {
+				if val, err := rdb.Get(ctx, key).Result(); err != nil {
+					return err
+				} else {
+					curType.Key = key
+					curType.Val = val
+					allKeys.StringKey = append(allKeys.StringKey, curType)
+				}
+
+			} else if sType == "list" {
+				if val, err := rdb.LRange(ctx, key, 0, -1).Result(); err != nil {
+					return err
+				} else {
+					curType.Key = key
+					curType.ListVal = val
+					allKeys.ListKey = append(allKeys.ListKey, curType)
+				}
+			} else if sType == "hash" {
+				if val, err := rdb.HGetAll(ctx, key).Result(); err != nil {
+					return err
+				} else {
+					curType.Key = key
+					curType.HashVal = val
+					allKeys.HashKey = append(allKeys.HashKey, curType)
+				}
+			} else if sType == "zset" {
+
+				if val, err := rdb.ZRevRange(ctx, key, 0, -1).Result(); err != nil {
+					return err
+				} else {
+					curType.Key = key
+					curType.ZsetVal = val
+					allKeys.ZsetKey = append(allKeys.ZsetKey, curType)
+				}
+
+			} else if sType == "set" {
+				if val, err := rdb.SMembers(ctx, key).Result(); err != nil {
+					return err
+				} else {
+					curType.Key = key
+					curType.ListVal = val
+					allKeys.SetKey = append(allKeys.SetKey, curType)
+				}
+			}
+
+		}
+		distFile, err := os.OpenFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
+		if err != nil {
+			return err
+		} else {
+			enc := json.NewEncoder(distFile)
+			if err := enc.Encode(allKeys); err != nil {
+				distFile.Close()
+				return err
+			}
+
+		}
 		if cursor == 0 {
+			distFile.Close()
 			break
 		}
 	}
-
-	for _, key := range keysList {
-		curType := Result{}
-		sType, err := rdb.Type(ctx, key).Result()
-		if err != nil {
-			return err
-		}
-
-		expire, err := rdb.TTL(ctx, key).Result()
-		if err != nil {
-			logger.Error(err)
-		}
-		curType.TTL = expire
-
-		if sType == "string" {
-			if val, err := rdb.Get(ctx, key).Result(); err != nil {
-				return err
-			} else {
-				curType.Key = key
-				curType.Val = val
-				allKeys.StringKey = append(allKeys.StringKey, curType)
-			}
-
-		} else if sType == "list" {
-			if val, err := rdb.LRange(ctx, key, 0, -1).Result(); err != nil {
-				return err
-			} else {
-				curType.Key = key
-				curType.ListVal = val
-				allKeys.ListKey = append(allKeys.ListKey, curType)
-			}
-		} else if sType == "hash" {
-			if val, err := rdb.HGetAll(ctx, key).Result(); err != nil {
-				return err
-			} else {
-				curType.Key = key
-				curType.HashVal = val
-				allKeys.HashKey = append(allKeys.HashKey, curType)
-			}
-		} else if sType == "zset" {
-
-			if val, err := rdb.ZRevRange(ctx, key, 0, -1).Result(); err != nil {
-				return err
-			} else {
-				curType.Key = key
-				curType.ZsetVal = val
-				allKeys.ZsetKey = append(allKeys.ZsetKey, curType)
-			}
-
-		} else if sType == "set" {
-			if val, err := rdb.SMembers(ctx, key).Result(); err != nil {
-				return err
-			} else {
-				curType.Key = key
-				curType.ListVal = val
-				allKeys.SetKey = append(allKeys.SetKey, curType)
-			}
-		}
-
-	}
-	if distFile, err := os.OpenFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), os.O_CREATE|os.O_WRONLY, 0666); err != nil {
-		return err
-	} else {
-		enc := json.NewEncoder(distFile)
-		if err := enc.Encode(allKeys); err != nil {
-			return err
-		}
-		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), fmt.Sprintf("%v/%v-Encrypt.json", r.BackupDir, r.Database))
-		return cmd.Run(fmt.Sprintf("rm -f %v/%v.json", r.BackupDir, r.Database), Debug)
-	}
+	keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), fmt.Sprintf("%v/%v-Encrypt.json", r.BackupDir, r.Database))
+	return os.Remove(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database))
 }

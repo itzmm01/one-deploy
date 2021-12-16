@@ -23,22 +23,42 @@
 ## 参数
 
 ```bash
--file： 指定备份的配置文件
+  -autoEncrypt string
+    	yes|no (default "yes")
+  -db string
+    	database: 0 (default "0")
+  -encrypt string
+    	need encrypt string
+  -file string
+    	config file (default "./backupdb.yml")
+  -host string
+    	database host: x.x.x.x
+  -mode string
+    	run mode: backup|restore (default "backup")
+  -password string
+    	database password: xxx
+  -port string
+    	database port: 6379
+  -src string
+    	restore dir/file:  such '/tmp/backupdir/redis/dump.json' 
+  -type string
+    	database type: redis|mysql|mongodb|etcd|es|postgresql
+  -username string
+    	database username: root
 ```
 
 ## 编译
 
 ```bash
-# 需要go环境,拉取代码后执行,会输出one-backup.tar.gz文件
+# 需要go环境,拉取代码后执行,会输出one-backup-linux-架构.tar.gz文件(目前适配uos-arm,centos-x86)
 ./build.sh
-
 ```
 
 ## 安装
 
 ```bash
-# 将one-backup.tar.gz上传服务器解压即可
-tar xf one-backup.tar.gz
+# 将one-backup-linux-架构.tar.gz上传服务器解压即可
+tar xf one-backup-linux-架构.tar.gz
 ```
 
 ## 备份
@@ -251,7 +271,12 @@ databases:
     type: etcd
     # etcd链接信息
     host: 127.0.0.1
+    # 端口
     port: 49514
+    # 用户
+    username: root
+    # 密码
+    password: Amt_2018
     # 是否使用https, yes|no
     https: no
     # ca证书路径
@@ -299,9 +324,11 @@ databases:
 
 ## 恢复
 
-暂时只支持redis-json格式的恢复
+暂时支持以下数据库的恢复
 
 ### redis
+
+只支持redis-json模式备份数据的恢复
 
 ```bash
 ./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"

@@ -92,7 +92,12 @@ databases:
     type: etcd
     # etcd链接信息
     host: 127.0.0.1
+    # 端口
     port: 49514
+    # 用户
+    username: root
+    # 密码
+    password: Amt_2018
     # 是否使用https, yes|no
     https: no
     # ca证书路径

@@ -2,6 +2,7 @@ package config
 
 import (
 	"one-backup/keygen"
+	"os"
 	"strconv"
 	"strings"
 
@@ -47,7 +48,10 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 	if err != nil {
 		logger.Error("read config failed: %v", err)
 	}
-
+	if viper.Get("storewith") == nil || viper.Get("compresstype") == nil || viper.Get("backupnum") == nil {
+		logger.Error("config file: storewith|compresstype|backupnum error")
+		os.Exit(1)
+	}
 	config.StoreWith = viper.Get("storewith").(map[string]interface{})
 	config.CompressType = viper.Get("compresstype").(string)
 	config.BackupNum = viper.Get("backupnum").(int)
@@ -91,6 +95,9 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 			}
 		}
 		config.Databases = append(config.Databases, tmp1)
+	default:
+		logger.Error("config file: databases error")
+		os.Exit(1)
 	}
 	viper.Set("databases", config.Databases)
 	viper.WriteConfigAs(filepath + "/" + filename + ".yml")

@@ -61,7 +61,7 @@ func AesDecryptCBC(encrypted, model string) (decryptedStr string) {
 	decrypted := make([]byte, len(encryptedBytes)) // 创建数组
 	defer func() {
 		if err := recover(); err != nil {
-			decryptedStr = encrypted
+			decryptedStr = "base64 error"
 		}
 	}()
 	blockMode.CryptBlocks(decrypted, encryptedBytes) // 解密

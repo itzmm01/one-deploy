@@ -50,7 +50,10 @@ func cleanHistoryFile(path, match string, saveNum int) {
 
 func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
 	if dbinfo["password"] != "" && autoEncrypt == "yes" {
-		dbinfo["password"] = keygen.AesDecryptCBC(dbinfo["password"], "pass")
+		decryptRes := keygen.AesDecryptCBC(dbinfo["password"], "pass")
+		if decryptRes != "base64 error" {
+			dbinfo["password"] = decryptRes
+		}
 	}
 
 	nameDir := fmt.Sprintf("%v-%v", dbinfo["type"], time.Now().Format("2006.01.02.15.04.05"))

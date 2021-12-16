@@ -272,5 +272,5 @@ func (ctx BaseModel) Backup() {
 	BackupDirName := strings.Split(ctx.BackupDir, `/`)
 	archive.ArchiveTar(true, ctx.SaveDir, BackupDirName[len(BackupDirName)-1], ctx.TarFilename)
 
-	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*", ctx.DbInfo["name"]), ctx.BackupNum)
+	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]), ctx.BackupNum)
 }

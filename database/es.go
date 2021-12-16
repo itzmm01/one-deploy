@@ -53,6 +53,7 @@ func (ctx *Elasticsearch) Restore(filePath string) error {
 	}
 
 	if err := cmd.Run(cmdStr, true); err != nil {
+		cmd.Run("rm -f "+dstPath, false)
 		return err
 	} else {
 		return cmd.Run("rm -f "+dstPath, false)

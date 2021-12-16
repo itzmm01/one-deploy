@@ -23,28 +23,42 @@
 ## 参数
 
 ```bash
+# 是否自动加密密码,默认加密
   -autoEncrypt string
     	yes|no (default "yes")
-  -db string
-    	database: 0 (default "0")
+# 指定需要加密的字符串,输出加密后的字符串
   -encrypt string
     	need encrypt string
-  -file string
-    	config file (default "./backupdb.yml")
-  -host string
-    	database host: x.x.x.x
+# 工具运行模式,备份或者恢复，默认是恢复
   -mode string
     	run mode: backup|restore (default "backup")
-  -password string
-    	database password: xxx
+#---------备份时使用参数
+# 指定配置文件
+  -file string
+    	config file (default "./backupdb.yml")
+#---------恢复时使用参数
+# 数据库类型
+  -type string
+    	database type: redis|mysql|mongodb|etcd|es|postgresql    	
+# 数据库IP
+  -host string
+    	database host: x.x.x.x
+# 数据库端口
   -port string
     	database port: 6379
-  -src string
-    	restore dir/file:  such '/tmp/backupdir/redis/dump.json' 
-  -type string
-    	database type: redis|mysql|mongodb|etcd|es|postgresql
+# 数据库用户
   -username string
     	database username: root
+# 数据库密码
+  -password string
+    	database password: xxx
+# 数据库名称
+  -db string
+    	database: 0 (default "0")
+# 恢复来源文件
+  -src string
+    	restore dir/file:  such '/tmp/backupdir/redis/dump.json' 
+
 ```
 
 ## 编译

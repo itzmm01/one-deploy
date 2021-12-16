@@ -29,6 +29,8 @@ type Etcd struct {
 	Name        string
 	Host        string
 	Port        string
+	Username    string
+	Password    string
 	Https       string
 	Cacert      string
 	Cert        string
@@ -37,7 +39,7 @@ type Etcd struct {
 
 func (ctx Etcd) Backup() error {
 	os.Setenv("ETCDAPI", "3")
-	cmdStr := ""
+	cmdStr := "etcdctl --command-timeout=300s "
 	if ctx.Cacert == "" {
 		ctx.Cacert = "/etc/kubernetes/pki/etcd/ca.crt"
 	}
@@ -47,14 +49,17 @@ func (ctx Etcd) Backup() error {
 	if ctx.Key == "" {
 		ctx.Key = "/etc/kubernetes/pki/etcd/server.key"
 	}
+	if ctx.Username != "" {
+		cmdStr += fmt.Sprintf("--user=%v:%v ", ctx.Username, ctx.Password)
+	}
 	if ctx.Https == "yes" {
-		cmdStr = fmt.Sprintf(
-			"etcdctl --command-timeout=10s --cacert=%v --cert=%v --key=%v --endpoints=https://%v:%v snapshot save %v/etcd.db",
+		cmdStr += fmt.Sprintf(
+			"--cacert=%v --cert=%v --key=%v --endpoints=https://%v:%v snapshot save %v/etcd.db",
 			ctx.Cacert, ctx.Cert, ctx.Key, ctx.Host, ctx.Port, ctx.BackupDir,
 		)
 	} else {
-		cmdStr = fmt.Sprintf(
-			"etcdctl --command-timeout=10s  --endpoints=http://%v:%v snapshot save %v/etcd.db",
+		cmdStr += fmt.Sprintf(
+			"--endpoints=http://%v:%v snapshot save %v/etcd.db",
 			ctx.Host, ctx.Port, ctx.BackupDir,
 		)
 	}

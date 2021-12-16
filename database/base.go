@@ -162,6 +162,8 @@ func (ctx BaseModel) Backup() {
 			BackupDir:   ctx.BackupDir,
 			Host:        ctx.DbInfo["host"],
 			Port:        ctx.DbInfo["port"],
+			Username:    ctx.DbInfo["username"],
+			Password:    ctx.DbInfo["password"],
 			Https:       ctx.DbInfo["https"],
 			Cacert:      ctx.DbInfo["cacert"],
 			Cert:        ctx.DbInfo["cert"],

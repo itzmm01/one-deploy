@@ -43,6 +43,7 @@ func AesEncryptCBC(passStr, model string) (str string) {
 	return strBase64
 }
 
+// AesDecryptCBC
 func AesDecryptCBC(encrypted, model string) (decryptedStr string) {
 	/*
 		encrypted: 需要解密的内容
@@ -83,6 +84,7 @@ func pkcs5UnPadding(origData []byte) []byte {
 	return origData[:(length - unpadding)]
 }
 
+// ReadBlock
 func ReadBlock(filePth, dstPath, op string) {
 
 	if tool.CheckFileIsExist(filePth) {
@@ -98,10 +100,12 @@ func ReadBlock(filePth, dstPath, op string) {
 
 }
 
+// AesEncryptCBCFile
 func AesEncryptCBCFile(srcPath, destPath string) {
 	ReadBlock(srcPath, destPath, "Encrypt")
 }
 
+// AesDecryptCBCFile
 func AesDecryptCBCFile(srcPath, destPath string) {
 	ReadBlock(srcPath, destPath, "Decrypt")
 }

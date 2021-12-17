@@ -5,6 +5,7 @@ import (
 	"one-backup/cmd"
 )
 
+// info
 type Mongodb struct {
 	// 压缩包文件名
 	TarFilename string
@@ -28,6 +29,7 @@ type Mongodb struct {
 	AuthDb string
 }
 
+// backup
 func (ctx Mongodb) Backup() error {
 	cmdStr := fmt.Sprintf("mongodump -h %v --port %v ", ctx.Host, ctx.Port)
 

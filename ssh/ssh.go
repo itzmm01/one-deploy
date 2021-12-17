@@ -23,6 +23,7 @@ type ClientConfig struct {
 	LastResult string       //最近一次运行的结果
 }
 
+// CreateClient
 func (cliConf *ClientConfig) CreateClient(host string, port int64, username, password string) {
 	var (
 		sshClient  *ssh.Client
@@ -57,6 +58,7 @@ func (cliConf *ClientConfig) CreateClient(host string, port int64, username, pas
 	cliConf.sftpClient = sftpClient
 }
 
+// RunShell
 func (cliConf *ClientConfig) RunShell(shell string) (res string, error1 error) {
 	var (
 		session *ssh.Session
@@ -76,6 +78,7 @@ func (cliConf *ClientConfig) RunShell(shell string) (res string, error1 error) {
 	return cliConf.LastResult, nil
 }
 
+// Upload
 func (cliConf *ClientConfig) Upload(srcPath, dstPath string) error {
 	srcFile, _ := os.Open(srcPath)                   //本地
 	dstFile, _ := cliConf.sftpClient.Create(dstPath) //远程
@@ -98,6 +101,7 @@ func (cliConf *ClientConfig) Upload(srcPath, dstPath string) error {
 	return nil
 }
 
+// Download
 func (cliConf *ClientConfig) Download(srcPath, dstPath string) error {
 	srcFile, _ := cliConf.sftpClient.Open(srcPath) //远程
 	dstFile, _ := os.Create(dstPath)               //本地

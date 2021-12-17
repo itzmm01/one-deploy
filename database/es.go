@@ -7,6 +7,7 @@ import (
 	"one-backup/tool"
 )
 
+// info
 type Elasticsearch struct {
 	// 压缩包文件名
 	TarFilename string
@@ -26,6 +27,7 @@ type Elasticsearch struct {
 	Index string
 }
 
+// backup
 func (ctx *Elasticsearch) Backup() error {
 	cmdStr := ""
 	if ctx.Username != "" && ctx.Password != "" {
@@ -50,6 +52,7 @@ func (ctx *Elasticsearch) Backup() error {
 	}
 }
 
+// restore
 func (ctx *Elasticsearch) Restore(filePath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filePath, dstPath)

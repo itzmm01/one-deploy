@@ -39,6 +39,8 @@ func passBase(autoEncrypt, pass string) string {
 	}
 
 }
+
+// init
 func Init(autoEncrypt, filename, filepath string) ModelConfig {
 	var config ModelConfig
 	viper.SetConfigType("yaml")

@@ -17,6 +17,7 @@ import (
 
 const Debug = false
 
+// base info
 type BaseModel struct {
 	TarFilename string
 	SaveDir     string
@@ -48,6 +49,7 @@ func cleanHistoryFile(path, match string, saveNum int) {
 	}
 }
 
+// run
 func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
 	if dbinfo["password"] != "" && autoEncrypt == "yes" {
 		decryptRes := keygen.AesDecryptCBC(dbinfo["password"], "pass")
@@ -75,6 +77,7 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 	base.Backup()
 }
 
+// restore
 func Restore(dbType, host, port, username, password, db, src string) error {
 	logger.Info("Restore starting")
 	switch dbType {
@@ -135,6 +138,7 @@ func Restore(dbType, host, port, username, password, db, src string) error {
 
 }
 
+// Backup
 func (ctx BaseModel) Backup() {
 	var errList []error
 

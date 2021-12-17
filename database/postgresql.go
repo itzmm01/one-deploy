@@ -8,6 +8,7 @@ import (
 	"os"
 )
 
+// info
 type Postgresql struct {
 	// 压缩包文件名
 	TarFilename string
@@ -29,6 +30,7 @@ type Postgresql struct {
 	Database string
 }
 
+// backup
 func (ctx Postgresql) Backup() error {
 	// pg_dump只支持单个数据库
 	cmdStr := fmt.Sprintf("pg_dump -h %v -p %v -U %v ", ctx.Host, ctx.Port, ctx.Username)
@@ -49,6 +51,7 @@ func (ctx Postgresql) Backup() error {
 	}
 }
 
+// restore
 func (ctx Postgresql) Restore(filePath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filePath, dstPath)

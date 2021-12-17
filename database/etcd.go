@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// info
 type Etcd struct {
 	// 压缩包文件名
 	TarFilename string
@@ -33,6 +34,7 @@ type Etcd struct {
 	Key string
 }
 
+// backup
 func (ctx Etcd) Backup() error {
 	os.Setenv("ETCDAPI", "3")
 	cmdStr := "etcdctl --command-timeout=300s "

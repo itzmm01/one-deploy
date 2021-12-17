@@ -20,9 +20,9 @@ databases:
     # 端口
     port: 5432
     # 账号
-    username: root
+    username: xxx
     # 密码
-    password: Amt_2018
+    password: xxx
 
     # 备份任务名
   - name: redis
@@ -35,7 +35,7 @@ databases:
     # 端口
     port: 6379
     # 密码
-    password: Amt_2018
+    password: xxx
     # 需要备份的数据库，多个用英文逗号隔开(json格式有效)
     database: 0
 
@@ -48,9 +48,9 @@ databases:
     # 端口
     port: 27017
     # 账号
-    username: root
+    username: xxx
     # 密码
-    password: Amt_2018
+    password: xxx
     # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
     database: alldatabase
     # 验证用户数据库
@@ -65,9 +65,9 @@ databases:
     # 端口
     port: 3306
     # 账号
-    username: root
+    username: xxx
     # 密码
-    password: Amt_2018
+    password: xxx
     # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
     database: test1,yc
 
@@ -80,9 +80,9 @@ databases:
     # 数据库端口
     port: 9200
     # 账号
-    username: root
+    username: xxx
     # 密码
-    password: Amt_2018
+    password: xxx
     # 备份的索引,多个用英文逗号隔开
     index: abc
 
@@ -95,9 +95,9 @@ databases:
     # 端口
     port: 49514
     # 用户
-    username: root
+    username: xxx
     # 密码
-    password: Amt_2018
+    password: xxx
     # 是否使用https, yes|no
     https: no
     # ca证书路径
@@ -118,6 +118,6 @@ databases:
     # ssh端口
     port: "22"
     # ssh 账号
-    username: "root"
+    username: "xxx"
     # ssh密码
-    password: "xxxx"
+    password: "xxx"

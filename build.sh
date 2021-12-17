@@ -11,6 +11,7 @@ build(){
 		cp -rf arm_bin one-backup/bin
 	fi
 	cp -rf example.yml one-backup/
+	cp -rf README.md one-backup/
 	chmod +x one-backup/bin/*
 	tar zcf one-backup-$GOOS-$GOARCH.tar.gz one-backup/ --remove-files
 }

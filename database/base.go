@@ -119,7 +119,7 @@ func Restore(dbType, host, port, username, password, db, src string) error {
 			Port:     port,
 			Username: username,
 			Password: password,
-			Db:       db,
+			Database: db,
 		}
 		if err := postgresql.Restore(src); err != nil {
 			logger.Error(err)
@@ -204,7 +204,7 @@ func (ctx BaseModel) Backup() {
 				Username:    ctx.DbInfo["username"],
 				Password:    ctx.DbInfo["password"],
 				AuthDb:      ctx.DbInfo["authdb"],
-				Db:          db,
+				Database:    db,
 			}
 			if err := mongodb.Backup(); err != nil {
 				errList = append(errList, err)
@@ -220,7 +220,7 @@ func (ctx BaseModel) Backup() {
 				Port:        ctx.DbInfo["port"],
 				Username:    ctx.DbInfo["username"],
 				Password:    ctx.DbInfo["password"],
-				Db:          db,
+				Database:    db,
 			}
 			if err := postgresql.Backup(); err != nil {
 				errList = append(errList, err)
@@ -270,7 +270,15 @@ func (ctx BaseModel) Backup() {
 	}
 
 	BackupDirName := strings.Split(ctx.BackupDir, `/`)
-	archive.ArchiveTar(true, ctx.SaveDir, BackupDirName[len(BackupDirName)-1], ctx.TarFilename)
+	archive.ArchiveTar(
+		true, ctx.SaveDir,
+		BackupDirName[len(BackupDirName)-1],
+		ctx.TarFilename,
+	)
 
-	cleanHistoryFile(ctx.SaveDir, fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]), ctx.BackupNum)
+	cleanHistoryFile(
+		ctx.SaveDir,
+		fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]),
+		ctx.BackupNum,
+	)
 }

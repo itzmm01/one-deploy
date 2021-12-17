@@ -138,133 +138,159 @@ func Restore(dbType, host, port, username, password, db, src string) error {
 
 }
 
-// Backup
-func (ctx BaseModel) Backup() {
+func mysqlObj(ctx BaseModel, db string) Mysql {
+	return Mysql{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		Database:    db,
+	}
+}
+func etcdObj(ctx BaseModel) Etcd {
+	return Etcd{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		Https:       ctx.DbInfo["https"],
+		Cacert:      ctx.DbInfo["cacert"],
+		Cert:        ctx.DbInfo["cert"],
+		Key:         ctx.DbInfo["key"],
+	}
+}
+
+func esObj(ctx BaseModel, index string) Elasticsearch {
+	return Elasticsearch{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		Index:       index,
+	}
+}
+
+func mongodbObj(ctx BaseModel, db string) Mongodb {
+	return Mongodb{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		AuthDb:      ctx.DbInfo["authdb"],
+		Database:    db,
+	}
+}
+
+func postgresqlObj(ctx BaseModel, db string) Postgresql {
+	return Postgresql{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		Database:    db,
+	}
+}
+
+func redisObj(ctx BaseModel, db string) Redis {
+	return Redis{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Password:    ctx.DbInfo["password"],
+		Model:       ctx.DbInfo["model"],
+		Database:    db,
+	}
+}
+func fileObj(ctx BaseModel) File {
+	return File{
+		TarFilename: ctx.TarFilename,
+		SaveDir:     ctx.SaveDir,
+		BackupDir:   ctx.BackupDir,
+		Host:        ctx.DbInfo["host"],
+		Port:        ctx.DbInfo["port"],
+		Username:    ctx.DbInfo["username"],
+		Password:    ctx.DbInfo["password"],
+		Path:        ctx.DbInfo["path"],
+	}
+}
+
+func choiceType(ctx BaseModel) []error {
 	var errList []error
-
 	databaseList := strings.Split(ctx.DbInfo["database"], `,`)
-	logger.Info("starting backup: ", ctx.DbInfo["name"])
-
 	switch ctx.DbInfo["type"] {
 	case "mysql":
 		for _, db := range databaseList {
-			mysql := Mysql{
-				TarFilename: ctx.TarFilename,
-				SaveDir:     ctx.SaveDir,
-				BackupDir:   ctx.BackupDir,
-				Host:        ctx.DbInfo["host"],
-				Port:        ctx.DbInfo["port"],
-				Username:    ctx.DbInfo["username"],
-				Password:    ctx.DbInfo["password"],
-				Database:    db,
-			}
+			mysql := mysqlObj(ctx, db)
 			if err := mysql.Backup(); err != nil {
 				errList = append(errList, err)
 			}
 		}
 	case "etcd":
-		etcd := Etcd{
-			TarFilename: ctx.TarFilename,
-			SaveDir:     ctx.SaveDir,
-			BackupDir:   ctx.BackupDir,
-			Host:        ctx.DbInfo["host"],
-			Port:        ctx.DbInfo["port"],
-			Username:    ctx.DbInfo["username"],
-			Password:    ctx.DbInfo["password"],
-			Https:       ctx.DbInfo["https"],
-			Cacert:      ctx.DbInfo["cacert"],
-			Cert:        ctx.DbInfo["cert"],
-			Key:         ctx.DbInfo["key"],
-		}
+		etcd := etcdObj(ctx)
 		if err := etcd.Backup(); err != nil {
 			errList = append(errList, err)
 		}
 	case "es":
 		indexList := strings.Split(ctx.DbInfo["index"], `,`)
 		for _, index := range indexList {
-			es := Elasticsearch{
-				TarFilename: ctx.TarFilename,
-				SaveDir:     ctx.SaveDir,
-				BackupDir:   ctx.BackupDir,
-				Host:        ctx.DbInfo["host"],
-				Port:        ctx.DbInfo["port"],
-				Username:    ctx.DbInfo["username"],
-				Password:    ctx.DbInfo["password"],
-				Index:       index,
-			}
+			es := esObj(ctx, index)
 			if err := es.Backup(); err != nil {
 				errList = append(errList, err)
 			}
 		}
-
 	case "mongodb":
 		for _, db := range databaseList {
-			mongodb := Mongodb{
-				TarFilename: ctx.TarFilename,
-				SaveDir:     ctx.SaveDir,
-				BackupDir:   ctx.BackupDir,
-				Host:        ctx.DbInfo["host"],
-				Port:        ctx.DbInfo["port"],
-				Username:    ctx.DbInfo["username"],
-				Password:    ctx.DbInfo["password"],
-				AuthDb:      ctx.DbInfo["authdb"],
-				Database:    db,
-			}
+			mongodb := mongodbObj(ctx, db)
 			if err := mongodb.Backup(); err != nil {
 				errList = append(errList, err)
 			}
 		}
 	case "postgresql":
 		for _, db := range databaseList {
-			postgresql := Postgresql{
-				TarFilename: ctx.TarFilename,
-				SaveDir:     ctx.SaveDir,
-				BackupDir:   ctx.BackupDir,
-				Host:        ctx.DbInfo["host"],
-				Port:        ctx.DbInfo["port"],
-				Username:    ctx.DbInfo["username"],
-				Password:    ctx.DbInfo["password"],
-				Database:    db,
-			}
+			postgresql := postgresqlObj(ctx, db)
 			if err := postgresql.Backup(); err != nil {
 				errList = append(errList, err)
 			}
 		}
 	case "redis":
 		for _, db := range databaseList {
-			redis := Redis{
-				TarFilename: ctx.TarFilename,
-				SaveDir:     ctx.SaveDir,
-				BackupDir:   ctx.BackupDir,
-				Host:        ctx.DbInfo["host"],
-				Port:        ctx.DbInfo["port"],
-				Password:    ctx.DbInfo["password"],
-				Model:       ctx.DbInfo["model"],
-				Database:    db,
-			}
-
+			redis := redisObj(ctx, db)
 			if err := redis.Backup(); err != nil {
 				errList = append(errList, err)
 			}
 		}
 	case "file":
-		file := File{
-			TarFilename: ctx.TarFilename,
-			SaveDir:     ctx.SaveDir,
-			BackupDir:   ctx.BackupDir,
-			Host:        ctx.DbInfo["host"],
-			Port:        ctx.DbInfo["port"],
-			Username:    ctx.DbInfo["username"],
-			Password:    ctx.DbInfo["password"],
-			Path:        ctx.DbInfo["path"],
-		}
+		file := fileObj(ctx)
 		if err := file.Backup(); err != nil {
 			errList = append(errList, err)
 		}
 	default:
 		logger.Info("no support ", ctx.DbInfo["name"])
 	}
+	return errList
+}
 
+// Backup
+func (ctx BaseModel) Backup() {
+	logger.Info("starting backup: ", ctx.DbInfo["name"])
+	errList := choiceType(ctx)
 	if len(errList) != 0 {
 		logger.Error(errList)
 		logger.Error("backup error", ctx.DbInfo["name"])

@@ -8,24 +8,24 @@ import (
 )
 
 type Mysql struct {
-	/*
-		database: test1,yc
-		host: 192.168.146.134
-		name: mysql
-		password: BhaBUTSg3lMXHLVUkHmOfw==
-		port: "3306"
-		type: mysql
-		username: root
-	*/
+	// 压缩包文件名
 	TarFilename string
-	SaveDir     string
-	BackupDir   string
-	Name        string
-	Host        string
-	Port        string
-	Username    string
-	Password    string
-	Database    string
+	// 保存目录
+	SaveDir string
+	// 备份目录
+	BackupDir string
+	// name
+	Name string
+	// 主机
+	Host string
+	// 端口
+	Port string
+	// 账号
+	Username string
+	// 密码
+	Password string
+	// 数据库
+	Database string
 }
 
 func (ctx *Mysql) Backup() error {
@@ -42,7 +42,10 @@ func (ctx *Mysql) Backup() error {
 
 	err := cmd.Run(cmdStr, Debug)
 	if err == nil {
-		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Database), fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Database))
+		keygen.AesEncryptCBCFile(
+			fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Database),
+			fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Database),
+		)
 		return cmd.Run(fmt.Sprintf("rm -f %v/%v.sql", ctx.BackupDir, ctx.Database), Debug)
 	} else {
 		return err
@@ -53,7 +56,10 @@ func (ctx *Mysql) Backup() error {
 func (ctx Mysql) Restore(filepath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filepath, dstPath)
-	cmdStr := fmt.Sprintf("cat '%v' | mysql -h %v -P %v -u%v -p%v", dstPath, ctx.Host, ctx.Port, ctx.Username, ctx.Password)
+	cmdStr := fmt.Sprintf(
+		"cat '%v' | mysql -h %v -P %v -u%v -p%v",
+		dstPath, ctx.Host, ctx.Port, ctx.Username, ctx.Password,
+	)
 
 	if err := cmd.Run(cmdStr, Debug); err != nil {
 		return err

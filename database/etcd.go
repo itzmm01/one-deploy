@@ -7,34 +7,30 @@ import (
 )
 
 type Etcd struct {
-	/*
-			name: etcd
-		    # 数据库类型
-		    type: etcd
-		    # etcd链接信息
-		    host: 127.0.0.1
-		    port: 49514
-		    # 是否使用https, yes|no
-		    https: no
-		    # ca证书路径
-		    cacert: /etc/etcd/ssl/ca.pem
-		    # 客户端证书路径
-		    cert: /etc/etcd/ssl/etcd.pem
-		    # 客户端密钥路径
-		    key: /etc/etcd/ssl/etcd-key.pem
-	*/
+	// 压缩包文件名
 	TarFilename string
-	SaveDir     string
-	BackupDir   string
-	Name        string
-	Host        string
-	Port        string
-	Username    string
-	Password    string
-	Https       string
-	Cacert      string
-	Cert        string
-	Key         string
+	// 保存目录
+	SaveDir string
+	// 备份目录
+	BackupDir string
+	// name
+	Name string
+	// 主机
+	Host string
+	// 端口
+	Port string
+	// 账号
+	Username string
+	// 密码
+	Password string
+	// 是否使用https
+	Https string
+	// 证书路径
+	Cacert string
+	// 证书路径
+	Cert string
+	// 证书路径
+	Key string
 }
 
 func (ctx Etcd) Backup() error {

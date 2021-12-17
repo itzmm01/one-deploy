@@ -9,15 +9,24 @@ import (
 )
 
 type File struct {
+	// 压缩包文件名
 	TarFilename string
-	SaveDir     string
-	BackupDir   string
-	Name        string
-	Host        string
-	Port        string
-	Username    string
-	Password    string
-	Path        string
+	// 保存目录
+	SaveDir string
+	// 备份目录
+	BackupDir string
+	// name
+	Name string
+	// 主机
+	Host string
+	// 端口
+	Port string
+	// 账号
+	Username string
+	// 密码
+	Password string
+	// 路径
+	Path string
 }
 
 func (ctx File) Backup() error {

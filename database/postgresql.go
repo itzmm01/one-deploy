@@ -9,30 +9,24 @@ import (
 )
 
 type Postgresql struct {
-	/*
-			name: postgresql
-		    # 数据库类型
-		    type: postgresql
-		    # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
-		    database: yc,test1
-		    # 数据库IP
-		    host: 127.0.0.1
-		    # 端口
-		    port: 5432
-		    # 账号
-		    username: root
-		    # 密码
-		    password: Amt_2018
-	*/
+	// 压缩包文件名
 	TarFilename string
-	SaveDir     string
-	BackupDir   string
-	Name        string
-	Host        string
-	Port        string
-	Username    string
-	Password    string
-	Db          string
+	// 保存目录
+	SaveDir string
+	// 备份目录
+	BackupDir string
+	// name
+	Name string
+	// 主机
+	Host string
+	// 端口
+	Port string
+	// 账号
+	Username string
+	// 密码
+	Password string
+	// 数据库
+	Database string
 }
 
 func (ctx Postgresql) Backup() error {
@@ -42,11 +36,14 @@ func (ctx Postgresql) Backup() error {
 		os.Setenv("PGPASSWORD", ctx.Password)
 	}
 
-	cmdStr = cmdStr + fmt.Sprintf("-d %v -f %v/%v.sql", ctx.Db, ctx.BackupDir, ctx.Db)
+	cmdStr = cmdStr + fmt.Sprintf("-d %v -f %v/%v.sql", ctx.Database, ctx.BackupDir, ctx.Database)
 
 	if err := cmd.Run(cmdStr, Debug); err == nil {
-		keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Db), fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Db))
-		return cmd.Run(fmt.Sprintf("rm -f %v/%v.sql", ctx.BackupDir, ctx.Db), false)
+		keygen.AesEncryptCBCFile(
+			fmt.Sprintf("%v/%v.sql", ctx.BackupDir, ctx.Database),
+			fmt.Sprintf("%v/%v-Encrypt.sql", ctx.BackupDir, ctx.Database),
+		)
+		return cmd.Run(fmt.Sprintf("rm -f %v/%v.sql", ctx.BackupDir, ctx.Database), false)
 	} else {
 		return err
 	}
@@ -57,8 +54,11 @@ func (ctx Postgresql) Restore(filePath string) error {
 	keygen.AesDecryptCBCFile(filePath, dstPath)
 
 	cmdStr := fmt.Sprintf("psql  -h %v -p %v -U %v ", ctx.Host, ctx.Port, ctx.Username)
-	cmdStrCreate := fmt.Sprintf("num=`%v -c '\\l'|grep %v|wc -l`; if [ $num -eq 0 ]; then %v -c 'CREATE DATABASE %v'; fi", cmdStr, ctx.Db, cmdStr, ctx.Db)
-	cmdStrRestore := cmdStr + fmt.Sprintf("-d %v -f %v", ctx.Db, dstPath)
+	cmdStrCreate := fmt.Sprintf(
+		"num=`%v -c '\\l'|grep %v|wc -l`; if [ $num -eq 0 ]; then %v -c 'CREATE DATABASE %v'; fi",
+		cmdStr, ctx.Database, cmdStr, ctx.Database,
+	)
+	cmdStrRestore := cmdStr + fmt.Sprintf("-d %v -f %v", ctx.Database, dstPath)
 
 	if ctx.Password != "" {
 		os.Setenv("PGPASSWORD", ctx.Password)

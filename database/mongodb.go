@@ -6,33 +6,26 @@ import (
 )
 
 type Mongodb struct {
-	/*
-			name: mongo
-		    # 数据库类型
-		    type: mongodb
-		    # 数据库IP
-		    host: 192.168.146.134
-		    # 端口
-		    port: 27017
-		    # 账号
-		    username: root
-		    # 密码
-		    password: Amt_2018
-		    # 需要备份的数据库，多个用英文逗号隔开, alldatabase 代表所有数据库
-		    database: alldatabase
-		    # 验证用户数据库
-		    authdb: "admin"
-	*/
+	// 压缩包文件名
 	TarFilename string
-	SaveDir     string
-	BackupDir   string
-	Name        string
-	Host        string
-	Port        string
-	Username    string
-	Password    string
-	Db          string
-	AuthDb      string
+	// 保存目录
+	SaveDir string
+	// 备份目录
+	BackupDir string
+	// name
+	Name string
+	// 主机
+	Host string
+	// 端口
+	Port string
+	// 账号
+	Username string
+	// 密码
+	Password string
+	// 数据库
+	Database string
+	// 认证数据库
+	AuthDb string
 }
 
 func (ctx Mongodb) Backup() error {
@@ -42,8 +35,8 @@ func (ctx Mongodb) Backup() error {
 		cmdStr = cmdStr + fmt.Sprintf("-u %v -p '%v' --authenticationDatabase %v ", ctx.Username, ctx.Password, ctx.AuthDb)
 	}
 
-	if ctx.Db != "alldatabase" {
-		cmdStr = cmdStr + fmt.Sprintf("-d %v ", ctx.Db)
+	if ctx.Database != "alldatabase" {
+		cmdStr = cmdStr + fmt.Sprintf("-d %v ", ctx.Database)
 	}
 
 	cmdStr = cmdStr + fmt.Sprintf("-o  %v/ ", ctx.BackupDir)

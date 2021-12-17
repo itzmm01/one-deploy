@@ -193,26 +193,22 @@ func writeKeyFile(r Redis, cursor uint64) error {
 	for {
 		var err error
 		var keys []string
-
 		ctx := context.Background()
 		allKeys := AllKey{}
 		keys, cursor, err = rdb.Scan(ctx, cursor, "*", 10).Result()
 		if err != nil {
 			return err
 		}
-
 		for _, key := range keys {
 			curType := Result{}
 			sType, err := rdb.Type(ctx, key).Result()
 			if err != nil {
 				return err
 			}
-
 			if expire, err := rdb.TTL(ctx, key).Result(); err != nil {
 				curType.TTL = expire
 				return err
 			}
-
 			if sType == "string" {
 				if val, err := rdb.Get(ctx, key).Result(); err != nil {
 					return err
@@ -221,7 +217,6 @@ func writeKeyFile(r Redis, cursor uint64) error {
 					curType.Val = val
 					allKeys.StringKey = append(allKeys.StringKey, curType)
 				}
-
 			} else if sType == "list" {
 				if val, err := rdb.LRange(ctx, key, 0, -1).Result(); err != nil {
 					return err
@@ -257,7 +252,6 @@ func writeKeyFile(r Redis, cursor uint64) error {
 					allKeys.SetKey = append(allKeys.SetKey, curType)
 				}
 			}
-
 		}
 		distFile, err := os.OpenFile(
 			fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database),
@@ -271,7 +265,6 @@ func writeKeyFile(r Redis, cursor uint64) error {
 				distFile.Close()
 				return err
 			}
-
 		}
 		if cursor == 0 {
 			distFile.Close()

@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/wonderivan/logger"
 )
 
+// info
 type Redis struct {
 	// 压缩包文件名
 	TarFilename string
@@ -39,6 +39,8 @@ type Redis struct {
 	// 备份方式
 	Model string
 }
+
+// result
 type Result struct {
 	Key     string
 	Val     string
@@ -47,6 +49,8 @@ type Result struct {
 	ZsetVal []string
 	TTL     time.Duration
 }
+
+// AllKey
 type AllKey struct {
 	StringKey []Result
 	ListKey   []Result
@@ -57,6 +61,7 @@ type AllKey struct {
 
 var rdb *redis.Client
 
+// backup
 func (ctx Redis) Backup() error {
 	//
 	if ctx.Model == "sync" {
@@ -76,6 +81,8 @@ func (ctx Redis) Backup() error {
 	}
 
 }
+
+// RestoreJson
 func (ctx Redis) RestoreJson(filepath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filepath, dstPath)
@@ -162,6 +169,7 @@ func (ctx Redis) RestoreJson(filepath string) error {
 	return os.Remove(dstPath)
 }
 
+// initRedis
 func initRedis(r Redis) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3600)
 	defer cancel()
@@ -180,22 +188,17 @@ func initRedis(r Redis) (err error) {
 	return nil
 }
 
-func BackupJson(r Redis) error {
-	if err := initRedis(r); err != nil {
-		return err
-	}
-	ctx := context.Background()
-
-	var cursor uint64
-
+// writeKeyFile
+func writeKeyFile(r Redis, cursor uint64) error {
 	for {
 		var err error
 		var keys []string
 
+		ctx := context.Background()
 		allKeys := AllKey{}
 		keys, cursor, err = rdb.Scan(ctx, cursor, "*", 10).Result()
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		for _, key := range keys {
@@ -205,11 +208,10 @@ func BackupJson(r Redis) error {
 				return err
 			}
 
-			expire, err := rdb.TTL(ctx, key).Result()
-			if err != nil {
-				logger.Error(err)
+			if expire, err := rdb.TTL(ctx, key).Result(); err != nil {
+				curType.TTL = expire
+				return err
 			}
-			curType.TTL = expire
 
 			if sType == "string" {
 				if val, err := rdb.Get(ctx, key).Result(); err != nil {
@@ -257,7 +259,10 @@ func BackupJson(r Redis) error {
 			}
 
 		}
-		distFile, err := os.OpenFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755)
+		distFile, err := os.OpenFile(
+			fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database),
+			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755,
+		)
 		if err != nil {
 			return err
 		} else {
@@ -273,6 +278,24 @@ func BackupJson(r Redis) error {
 			break
 		}
 	}
-	keygen.AesEncryptCBCFile(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database), fmt.Sprintf("%v/%v-Encrypt.json", r.BackupDir, r.Database))
+	return nil
+}
+
+// BackupJson
+func BackupJson(r Redis) error {
+	if err := initRedis(r); err != nil {
+		return err
+	}
+
+	var cursor uint64
+
+	if err := writeKeyFile(r, cursor); err != nil {
+		return err
+	}
+
+	keygen.AesEncryptCBCFile(
+		fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database),
+		fmt.Sprintf("%v/%v-Encrypt.json", r.BackupDir, r.Database),
+	)
 	return os.Remove(fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database))
 }

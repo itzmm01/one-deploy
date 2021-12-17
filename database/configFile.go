@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// file info
 type File struct {
 	// 压缩包文件名
 	TarFilename string
@@ -29,6 +30,7 @@ type File struct {
 	Path string
 }
 
+// backup
 func (ctx File) Backup() error {
 	if ctx.Host == "local" {
 		destName := strings.Split(ctx.Path, `/`)

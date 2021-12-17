@@ -7,6 +7,7 @@ import (
 	"one-backup/tool"
 )
 
+// info
 type Mysql struct {
 	// 压缩包文件名
 	TarFilename string
@@ -28,6 +29,7 @@ type Mysql struct {
 	Database string
 }
 
+// backup
 func (ctx *Mysql) Backup() error {
 	cmdStr := fmt.Sprintf(
 		"mysqldump --lock-tables=0 -h %v -P %v -u%v -p'%v' ", ctx.Host, ctx.Port, ctx.Username, ctx.Password,
@@ -53,6 +55,7 @@ func (ctx *Mysql) Backup() error {
 
 }
 
+// restore
 func (ctx Mysql) Restore(filepath string) error {
 	dstPath := "/tmp/" + tool.RandomString(30)
 	keygen.AesDecryptCBCFile(filepath, dstPath)

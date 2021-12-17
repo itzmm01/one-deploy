@@ -15,6 +15,7 @@ const (
 	GB18030 = Charset("GB18030")
 )
 
+// Run
 func Run(command string, debug bool) error {
 	var result []byte
 	var err error
@@ -39,6 +40,7 @@ func Run(command string, debug bool) error {
 	return err
 }
 
+// ConvertByte2String
 func ConvertByte2String(byte []byte, charset Charset) string {
 	var str string
 	switch charset {

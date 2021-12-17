@@ -19,6 +19,7 @@ func CheckFileIsExist(filename string) bool {
 	return exist
 }
 
+// WriteFileA
 func WriteFileA(filePath, contentA string) {
 	if !CheckFileIsExist(filePath) {
 		os.Create(filePath)

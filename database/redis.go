@@ -188,8 +188,8 @@ func initRedis(r Redis) (err error) {
 	return nil
 }
 
-// writeKeyFile
-func writeKeyFile(r Redis, cursor uint64) error {
+// getKeyValue
+func getKeyValue(r Redis, cursor uint64) error {
 	for {
 		var err error
 		var keys []string
@@ -253,25 +253,36 @@ func writeKeyFile(r Redis, cursor uint64) error {
 				}
 			}
 		}
-		distFile, err := os.OpenFile(
-			fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database),
-			os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755,
-		)
+
+		err, cursor := writeKeyFile(allKeys, r, cursor)
 		if err != nil {
 			return err
-		} else {
-			enc := json.NewEncoder(distFile)
-			if err := enc.Encode(allKeys); err != nil {
-				distFile.Close()
-				return err
-			}
 		}
 		if cursor == 0 {
-			distFile.Close()
 			break
 		}
 	}
 	return nil
+}
+func writeKeyFile(allKeys AllKey, r Redis, cursor uint64) (error, uint64) {
+	distFile, err := os.OpenFile(
+		fmt.Sprintf("%v/%v.json", r.BackupDir, r.Database),
+		os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0755,
+	)
+	if err != nil {
+		return err, cursor
+	} else {
+		enc := json.NewEncoder(distFile)
+		if err := enc.Encode(allKeys); err != nil {
+			distFile.Close()
+			return err, cursor
+		}
+	}
+	if cursor == 0 {
+		distFile.Close()
+		return nil, cursor
+	}
+	return nil, cursor
 }
 
 // BackupJson
@@ -282,7 +293,7 @@ func BackupJson(r Redis) error {
 
 	var cursor uint64
 
-	if err := writeKeyFile(r, cursor); err != nil {
+	if err := getKeyValue(r, cursor); err != nil {
 		return err
 	}
 

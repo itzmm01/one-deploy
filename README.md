@@ -366,7 +366,17 @@ databases:
 ./one-backup -mode restore -type postgresql -host 192.168.146.134 -port 5432 -username root -password xxx -db test1 -src /tmp/backupdir/postgresql/postgresql-2021.12.14.12.39.32/test1-Encrypt.sql
 ```
 
+### mongodb
 
+手动使用mongorestore 恢复，后续集成
+
+### etcd
+
+手动使用etcdctl恢复，后续集成
+
+### 配置文件
+
+手动cp恢复，后续集成
 
 ## 定期备份
 

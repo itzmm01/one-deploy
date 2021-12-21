@@ -58,7 +58,7 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 		}
 	}
 
-	nameDir := fmt.Sprintf("%v-%v", dbinfo["type"], time.Now().Format("2006.01.02.15.04.05"))
+	nameDir := fmt.Sprintf("%v-%v", dbinfo["name"], time.Now().Format("2006.01.02.15.04.05"))
 	base := BaseModel{
 		TarFilename: fmt.Sprintf("%v/%v/%v.tar.gz", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
 		SaveDir:     fmt.Sprintf("%v/%v/", configInfo.StoreWith["path"], dbinfo["type"]),
@@ -143,6 +143,7 @@ func mysqlObj(ctx BaseModel, db string) Mysql {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
@@ -155,6 +156,7 @@ func etcdObj(ctx BaseModel) Etcd {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
@@ -171,6 +173,7 @@ func esObj(ctx BaseModel, index string) Elasticsearch {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
@@ -184,6 +187,7 @@ func mongodbObj(ctx BaseModel, db string) Mongodb {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
@@ -198,6 +202,7 @@ func postgresqlObj(ctx BaseModel, db string) Postgresql {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
@@ -211,6 +216,7 @@ func redisObj(ctx BaseModel, db string) Redis {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Password:    ctx.DbInfo["password"],
@@ -223,6 +229,7 @@ func fileObj(ctx BaseModel) File {
 		TarFilename: ctx.TarFilename,
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
+		Name:        ctx.DbInfo["name"],
 		Host:        ctx.DbInfo["host"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],

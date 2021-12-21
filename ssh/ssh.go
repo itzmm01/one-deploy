@@ -3,8 +3,11 @@ package ssh
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/pkg/sftp"
@@ -101,6 +104,25 @@ func (cliConf *ClientConfig) Upload(srcPath, dstPath string) error {
 	return nil
 }
 
+// UploadDirectory
+func (cliConf *ClientConfig) UploadDirectory(srcDir, dstPath string) error {
+	srcFiles, err := ioutil.ReadDir(srcDir)
+	if err != nil {
+		return err
+	}
+	for _, backupDir := range srcFiles {
+		srcFilePath := path.Join(srcDir, backupDir.Name())
+		dstFilePath := path.Join(dstPath, backupDir.Name())
+		if backupDir.IsDir() {
+			cliConf.sftpClient.Mkdir(dstFilePath)
+			cliConf.UploadDirectory(srcFilePath, dstFilePath)
+		} else {
+			cliConf.Upload(srcFilePath, dstFilePath)
+		}
+	}
+	return nil
+}
+
 // Download
 func (cliConf *ClientConfig) Download(srcPath, dstPath string) error {
 	srcFile, _ := cliConf.sftpClient.Open(srcPath) //远程
@@ -112,6 +134,31 @@ func (cliConf *ClientConfig) Download(srcPath, dstPath string) error {
 
 	if _, err := srcFile.WriteTo(dstFile); err != nil {
 		return err
+	}
+	return nil
+}
+
+// DownloadDirectory
+func (cliConf *ClientConfig) DownloadDirectory(srcPath, dstPath string) error {
+	w := cliConf.sftpClient.Walk(srcPath)
+	for w.Step() {
+		if w.Err() != nil {
+			continue
+		}
+		fileName := strings.Split(w.Path(), srcPath)
+		stat, _ := cliConf.sftpClient.Stat(w.Path())
+		if stat.IsDir() {
+			err := os.MkdirAll(dstPath+fileName[len(fileName)-1], 0755)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := cliConf.Download(w.Path(), dstPath+fileName[len(fileName)-1])
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 	return nil
 }

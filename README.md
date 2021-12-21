@@ -1,10 +1,6 @@
-## 数据库一键备份工具
-
-
-
 ## 介绍
 
- 基于`go 17.3`开发封装各种数据库各自的备份工具，简化备份操作，支持数据库备份和配置文件备份。
+ 基于`go 17.3`开发封装各种数据库各自的备份工具，简化备份操作，支持数据库备份和配置文件备份,主要解决少量元数据备份场景。
 
 支持数据库有
 
@@ -68,14 +64,12 @@
 ./build.sh
 ```
 
-## 安装
+## 安装使用
 
 ```bash
 # 将one-backup-linux-架构.tar.gz上传服务器解压即可
 tar xf one-backup-linux-架构.tar.gz
 ```
-
-## 备份
 
 请根据`example.yml`修改自己需要备份的相关信息
 
@@ -87,11 +81,9 @@ cp example.yml xx.yml
 ./one-backup -file xx.yml
 ```
 
-### 使用示例
+## mysql
 
-#### mysql
-
-通过配置文件备份
+### 备份
 
 > ./one-backup -file mysql.yml
 
@@ -123,9 +115,15 @@ databases:
     database: test1,yc
 ```
 
-#### postgresql
+### 恢复
 
-通过配置文件备份
+```bash
+./one-backup -mode restore -type mysql -host 192.168.146.134 -port 3316 -username root -password xxx -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
+```
+
+## postgresql
+
+### 备份
 
 > ./one-backup  -file  postgresql.yml
 
@@ -157,9 +155,15 @@ databases:
     password: Amt_2018
 ```
 
-#### redis
+### 恢复
 
-通过配置文件备份
+```bash
+./one-backup -mode restore -type postgresql -host 192.168.146.134 -port 5432 -username root -password xxx -db test1 -src /tmp/backupdir/postgresql/postgresql-2021.12.14.12.39.32/test1-Encrypt.sql
+```
+
+## redis
+
+### 备份
 
 > ./one-backup  -file  redis.yml
 
@@ -191,9 +195,31 @@ databases:
     database: 0
 ```
 
-#### mongo
+### 恢复
 
-通过配置文件备份
+只支持redis-json模式备份数据的恢复
+
+```bash
+./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
+```
+
+### 性能数据
+
+服务器配置: 16C,32G,150w个key
+
+>    cpu 30%以下
+>
+>    内存 0.2%以下
+>
+>    redis链接数20
+>
+>    恢复 5分钟 
+>
+>    备份 14分钟
+
+## mongo
+
+### 备份
 
 > ./one-backup  -file  mongo.yml
 
@@ -227,9 +253,13 @@ databases:
     authdb: "admin"
 ```
 
-#### es
+### 恢复
 
-通过配置文件备份
+暂时智能手动使用mongorestore 恢复，后续集成
+
+## es
+
+### 备份
 
 > ./one-backup  -file  es.yml
 
@@ -261,9 +291,17 @@ databases:
     index: abc
 ```
 
-#### etcd
+### 恢复
 
-通过配置文件备份
+
+
+```bash
+./one-backup -mode restore -type es -host 192.168.146.134 -port 9200 -src /tmp/backupdir/es/es-2021.12.14.11.24.08/test111-Encrypt.json
+```
+
+## etcd
+
+### 备份
 
 > ./one-backup  -file  etcd.yml
 
@@ -301,9 +339,13 @@ databases:
     key: /etc/etcd/ssl/etcd-key.pem
 ```
 
-#### 配置文件
+### 恢复
 
-通过配置文件备份
+手动使用etcdctl恢复，后续集成
+
+## 文件
+
+### 备份
 
 > ./one-backup  -file  config.yml
 
@@ -336,47 +378,11 @@ databases:
     password: "xxxx"
 ```
 
-## 恢复
+### 恢复
 
-暂时支持以下数据库的恢复
+手动cp恢复
 
-### redis
 
-只支持redis-json模式备份数据的恢复
-
-```bash
-./one-backup -mode restore -type redis -host 192.168.146.134 -port 6380 -password xxx -db 0 -src "./dump.json"
-```
-
-### mysql
-
-```bash
-./one-backup -mode restore -type mysql -host 192.168.146.134 -port 3316 -username root -password xxx -src /tmp/backupdir/mysql/mysql/yc-Encrypt.sql
-```
-
-### es
-
-```bash
-./one-backup -mode restore -type es -host 192.168.146.134 -port 9200 -src /tmp/backupdir/es/es-2021.12.14.11.24.08/test111-Encrypt.json
-```
-
-### postgresql
-
-```bash
-./one-backup -mode restore -type postgresql -host 192.168.146.134 -port 5432 -username root -password xxx -db test1 -src /tmp/backupdir/postgresql/postgresql-2021.12.14.12.39.32/test1-Encrypt.sql
-```
-
-### mongodb
-
-手动使用mongorestore 恢复，后续集成
-
-### etcd
-
-手动使用etcdctl恢复，后续集成
-
-### 配置文件
-
-手动cp恢复，后续集成
 
 ## 定期备份
 

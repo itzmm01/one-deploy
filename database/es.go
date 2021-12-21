@@ -15,6 +15,8 @@ type Elasticsearch struct {
 	SaveDir string
 	// 备份目录
 	BackupDir string
+	// 备份名
+	Name string
 	// 主机
 	Host string
 	// 端口

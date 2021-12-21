@@ -343,6 +343,84 @@ databases:
 
 手动使用etcdctl恢复，后续集成
 
+## zookeeper
+
+### 备份
+
+> ./one-backup  -file  config.yml
+
+```yaml
+# 保留备份文件数量
+backupnum: 5
+# 压缩选项
+compresstype: tgz
+# 存储选项
+storewith:
+  # 类型(暂时支持本地存储)
+  type: local
+  # 路径
+  path: /tmp/backupdir
+# 配置文件备份
+databases:
+    # 备份名
+  - name: "zookeeper"
+    # 类型 file
+    type: file
+    # zookeeper的dataDir目录,注意需要/结尾
+    path: "/data/hadoop/zookeeper/"
+    # 需要备份的服务器,local代表本机且无需账号密码
+    host: "x.x.x.x"
+    # ssh端口
+    port: "22"
+    # ssh 账号
+    username: "root"
+    # ssh密码
+    password: "xxxx"
+```
+
+### 恢复
+
+手动cp恢复
+
+## HDFS-fsimage
+
+### 备份
+
+> ./one-backup  -file  config.yml
+
+```yaml
+# 保留备份文件数量
+backupnum: 5
+# 压缩选项
+compresstype: tgz
+# 存储选项
+storewith:
+  # 类型(暂时支持本地存储)
+  type: local
+  # 路径
+  path: /tmp/backupdir
+# 配置文件备份
+databases:
+    # 备份名
+  - name: "zookeeper"
+    # 类型 file
+    type: file
+    # HDFS-fsimage的路径
+    path: "/data/hadoop/fsimage-xxx"
+    # 需要备份的服务器,local代表本机且无需账号密码
+    host: "x.x.x.x"
+    # ssh端口
+    port: "22"
+    # ssh 账号
+    username: "root"
+    # ssh密码
+    password: "xxxx"
+```
+
+### 恢复
+
+手动cp恢复
+
 ## 文件
 
 ### 备份

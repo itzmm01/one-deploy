@@ -62,6 +62,11 @@
 ```bash
 # 需要go环境,拉取代码后执行,会输出one-backup-linux-架构.tar.gz文件(目前适配uos-arm,centos-x86)
 ./build.sh
+# 或者直接从cos下载
+# amd64
+wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-amd64.tar.gz
+# arm64
+wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-arm64.tar.gz
 ```
 
 ## 安装使用

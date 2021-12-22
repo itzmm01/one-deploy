@@ -34,7 +34,7 @@ type File struct {
 func (ctx File) Backup() error {
 	if ctx.Host == "local" {
 		destName := strings.Split(ctx.Path, `/`)
-		cmd_str := fmt.Sprintf("/bin/cp -rf %v %v/%v/", ctx.Path, ctx.BackupDir, destName[len(destName)-1])
+		cmd_str := fmt.Sprintf("/bin/cp -rf %v %v/%v", ctx.Path, ctx.BackupDir, destName[len(destName)-1])
 		return cmd.Run(cmd_str, Debug)
 	} else {
 		cliConf := new(ssh.ClientConfig)

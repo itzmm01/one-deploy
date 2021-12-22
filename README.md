@@ -264,6 +264,8 @@ databases:
 
 ## es
 
+**`暂不支持arm`**
+
 ### 备份
 
 > ./one-backup  -file  es.yml

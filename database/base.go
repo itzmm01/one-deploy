@@ -78,62 +78,47 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 }
 
 // restore
-func Restore(dbType, host, port, username, password, db, src string) error {
+func Restore(base BaseModel) error {
 	logger.Info("Restore starting")
-	switch dbType {
+	errList := []error{}
+	switch base.DbInfo["dbType"] {
 	case "redis":
-		rdb := Redis{
-			Host:     host,
-			Port:     port,
-			Username: username,
-			Password: password,
-			Database: db,
-		}
-		if err := rdb.RestoreJson(src); err != nil {
-			logger.Error(err)
-			return err
+		rdb := redisObj(base, base.DbInfo["db"])
+		if err := rdb.RestoreJson(base.DbInfo["src"]); err != nil {
+			errList = append(errList, err)
 		}
 	case "mysql":
-		mysql := Mysql{
-			Host:     host,
-			Port:     port,
-			Username: username,
-			Password: password,
-			Database: db,
-		}
-		if err := mysql.Restore(src); err != nil {
-			logger.Error(err)
-			return err
+		mysql := mysqlObj(base, base.DbInfo["db"])
+		if err := mysql.Restore(base.DbInfo["src"]); err != nil {
+			errList = append(errList, err)
 		}
 	case "es":
-		es := Elasticsearch{
-			Host:     host,
-			Port:     port,
-			Username: username,
-			Password: password,
-		}
-		if err := es.Restore(src); err != nil {
-			logger.Error(err)
-			return err
+		es := esObj(base, base.DbInfo["db"])
+		if err := es.Restore(base.DbInfo["src"]); err != nil {
+			errList = append(errList, err)
 		}
 	case "postgresql":
-		postgresql := Postgresql{
-			Host:     host,
-			Port:     port,
-			Username: username,
-			Password: password,
-			Database: db,
+		postgresql := postgresqlObj(base, base.DbInfo["db"])
+		if err := postgresql.Restore(base.DbInfo["src"]); err != nil {
+			errList = append(errList, err)
 		}
-		if err := postgresql.Restore(src); err != nil {
-			logger.Error(err)
-			return err
+	case "mongodb":
+		mongodb := mongodbObj(base, base.DbInfo["db"])
+		if err := mongodb.Restore(base.DbInfo["src"]); err != nil {
+			errList = append(errList, err)
 		}
 	default:
-		logger.Info("no support db: ", dbType)
+		logger.Info("no support db: ", base.DbInfo["dbType"])
 		return nil
 	}
 
-	logger.Info("Restore success")
+	if len(errList) != 0 {
+		logger.Error(errList)
+		logger.Error("Restore error")
+		return nil
+	} else {
+		logger.Info("Restore done")
+	}
 	return nil
 
 }

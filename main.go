@@ -59,6 +59,7 @@ func main() {
 	db := flag.String("db", "0", "database: 0")
 	username := flag.String("username", "", "database username: root")
 	password := flag.String("password", "", "database password: xxx")
+	authdb := flag.String("authdb", "admin", "mongo authdb: admin")
 	src := flag.String("src", "", "restore dir/file:  such '/tmp/backupdir/redis/dump.json' ")
 
 	flag.Parse()
@@ -94,7 +95,18 @@ func main() {
 			database.Run(configInfo, dbInfo, *autoEncrypt)
 		}
 	} else if *mode == "restore" {
-		database.Restore(*dbType, *host, *port, *username, *password, *db, *src)
+		base := database.BaseModel{}
+		base.DbInfo = map[string]string{
+			"dbType":   *dbType,
+			"host":     *host,
+			"port":     *port,
+			"username": *username,
+			"password": *password,
+			"db":       *db,
+			"src":      *src,
+			"authdb":   *authdb,
+		}
+		database.Restore(base)
 	}
 
 }

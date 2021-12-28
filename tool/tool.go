@@ -62,7 +62,8 @@ func PleaseConfirm(message string) string {
 	if message != "" {
 		printGreen(message)
 	} else {
-		printGreen("This operation will overwrite the original data. Please operate with care. Confirm whether to continue!!!")
+		printGreen(`This operation will overwrite the original data. Please operate with care.
+Confirm whether to continue!!!`)
 	}
 	fmt.Println("Yes|NO")
 	fmt.Scanln(&choice)

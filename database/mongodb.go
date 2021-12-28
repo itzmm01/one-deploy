@@ -44,3 +44,13 @@ func (ctx Mongodb) Backup() error {
 	cmdStr = cmdStr + fmt.Sprintf("-o  %v/ ", ctx.BackupDir)
 	return cmd.Run(cmdStr, Debug)
 }
+
+// restore
+func (ctx Mongodb) Restore(filePath string) error {
+	cmdStr := fmt.Sprintf("mongorestore -h %v:%v ", ctx.Host, ctx.Port)
+	if ctx.Username != "" && ctx.Password != "" {
+		cmdStr = cmdStr + fmt.Sprintf("-u %v -p '%v' --authenticationDatabase %v ", ctx.Username, ctx.Password, ctx.AuthDb)
+	}
+	cmdStr = cmdStr + fmt.Sprintf("  %v/ ", filePath)
+	return cmd.Run(cmdStr, true)
+}

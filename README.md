@@ -260,7 +260,9 @@ databases:
 
 ### 恢复
 
-暂时智能手动使用mongorestore 恢复，后续集成
+```bash
+./one-backup -mode restore -type mongodb -host 192.168.146.134 -port 17017 -username root -password xxx -authdb admin -src /tmp/backupdir/mongodb/mongodb-2021.12.27.01.35.24/
+```
 
 ## es
 
@@ -339,16 +341,33 @@ databases:
     # 是否使用https, yes|no
     https: no
     # ca证书路径
-    cacert: /etc/etcd/ssl/ca.pem
+    cacert: /etc/kubernetes/pki/etcd/ca.crt
     # 客户端证书路径
-    cert: /etc/etcd/ssl/etcd.pem
+    cert: /etc/kubernetes/pki/etcd/server.crt
     # 客户端密钥路径
-    key: /etc/etcd/ssl/etcd-key.pem
+    key: /etc/kubernetes/pki/etcd/server.key
+    
 ```
 
 ### 恢复
 
-手动使用etcdctl恢复，后续集成
+
+
+```bash
+# 暂时支持单机etcd
+./one-backup -mode restore -type etcd -host 192.168.146.134 -port 49154 -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-2021.12.27.22.43.14/etcd.db
+```
+
+集群请手动使用etcdctl恢复
+
+```bash
+# 示例
+./bin/etcdctl snapshot restore snap1
+--name etcd-41
+--initial-cluster etcd-41=http://192.168.31.41:2380,etcd-42=http://192.168.31.42:2380,etcd-43=http://192.168.31.43:2380
+--initial-advertise-peer-urls http://192.168.31.41:2380
+--data-dir /var/lib/etcd/cluster.etcd
+```
 
 ## zookeeper
 

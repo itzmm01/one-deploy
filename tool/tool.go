@@ -49,3 +49,22 @@ func RandomString(len int) string {
 	}
 	return string(bytes)
 }
+func printGreen(message string) {
+	conf := 1  // 配置、终端默认设置
+	bg := 32   // 背景色、终端默认设置
+	text := 40 // 前景色、红色
+	fmt.Printf("\n %c[%d;%d;%dm%s%c[0m\n\n", 0x1B, conf, bg, text, message, 0x1B)
+}
+
+// 请确认
+func PleaseConfirm(message string) string {
+	var choice string
+	if message != "" {
+		printGreen(message)
+	} else {
+		printGreen("This operation will overwrite the original data. Please operate with care. Confirm whether to continue!!!")
+	}
+	fmt.Println("Yes|NO")
+	fmt.Scanln(&choice)
+	return *&choice
+}

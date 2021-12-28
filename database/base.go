@@ -107,6 +107,11 @@ func Restore(base BaseModel) error {
 		if err := mongodb.Restore(base.DbInfo["src"]); err != nil {
 			errList = append(errList, err)
 		}
+	case "etcd":
+		etcd := etcdObj(base)
+		if err := etcd.Restore(base.DbInfo["src"], base.DbInfo["dataDir"]); err != nil {
+			errList = append(errList, err)
+		}
 	default:
 		logger.Info("no support db: ", base.DbInfo["dbType"])
 		return nil

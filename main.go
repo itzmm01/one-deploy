@@ -51,16 +51,20 @@ func main() {
 	configFile := flag.String("file", "./backupdb.yml", "config file")
 	encrypt := flag.String("encrypt", "", "need encrypt string")
 	autoEncrypt := flag.String("autoEncrypt", "yes", "yes|no")
-
 	mode := flag.String("mode", "backup", "run mode: backup|restore")
 	dbType := flag.String("type", "", "database type: redis|mysql|mongodb|etcd|es|postgresql")
 	host := flag.String("host", "", "database host: x.x.x.x")
 	port := flag.String("port", "", "database port: 6379")
 	db := flag.String("db", "0", "database: 0")
-	username := flag.String("username", "", "database username: root")
+	username := flag.String("username", "root", "database username")
 	password := flag.String("password", "", "database password: xxx")
 	authdb := flag.String("authdb", "admin", "mongo authdb: admin")
-	src := flag.String("src", "", "restore dir/file:  such '/tmp/backupdir/redis/dump.json' ")
+	https := flag.String("https", "no", "etcd https")
+	cacert := flag.String("cacert", "/etc/kubernetes/pki/etcd/ca.crt", "etcd cacert")
+	cert := flag.String("cert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
+	certkey := flag.String("Key", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
+	dataDir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir")
+	src := flag.String("src", "", "restore file/dir:  such '/backupdir/redis/dump.json or /backupdir/mongodb/mongodb-2021.12.27.01.35.24/' ")
 
 	flag.Parse()
 
@@ -105,6 +109,11 @@ func main() {
 			"db":       *db,
 			"src":      *src,
 			"authdb":   *authdb,
+			"https":    *https,
+			"cacert":   *cacert,
+			"cert":     *cert,
+			"key":      *certkey,
+			"dataDir":  *dataDir,
 		}
 		database.Restore(base)
 	}

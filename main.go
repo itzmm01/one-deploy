@@ -64,7 +64,7 @@ func main() {
 	cert := flag.String("cert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
 	certkey := flag.String("Key", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
 	dataDir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir")
-	src := flag.String("src", "", "restore file/dir:  such '/backupdir/redis/dump.json or /backupdir/mongodb/mongodb-2021.12.27.01.35.24/' ")
+	src := flag.String("src", "", "restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'")
 
 	flag.Parse()
 

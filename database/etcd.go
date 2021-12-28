@@ -65,6 +65,7 @@ func (ctx Etcd) Backup() error {
 	return cmd.Run(cmdStr, Debug)
 }
 
+// Restore
 func (ctx Etcd) Restore(filePath, dataDir string) error {
 	message := `提示:
 需要删除原有数据总目录，不然恢复的时候有有各种问题。命令中需要指定数据目录 -datadir /var/lib/etcd，否则会产生默认工作目录，一个default的名称
@@ -76,7 +77,8 @@ func (ctx Etcd) Restore(filePath, dataDir string) error {
 	/*
 		etcdctl snapshot restore snap1
 		--name etcd-41
-		--initial-cluster etcd-41=http://192.168.31.41:2380,etcd-42=http://192.168.31.42:2380,etcd-43=http://192.168.31.43:2380
+		--initial-cluster
+		etcd-41=http://192.168.31.41:2380,etcd-42=http://192.168.31.42:2380,etcd-43=http://192.168.31.43:2380
 		--initial-advertise-peer-urls http://192.168.31.41:2380
 		--data-dir /var/lib/etcd/cluster.etcd
 		快照恢复时，会重新生成客户端id和集群id，所有的节点统一使用一个快照恢复集群

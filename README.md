@@ -406,7 +406,9 @@ databases:
 
 ### 恢复
 
-手动cp恢复
+```bash
+# 手动解压备份目录 并且将zookeeper配置文件中的dataDir 指向备份目录然后重启zookeeper
+```
 
 ## HDFS-fsimage
 
@@ -445,7 +447,9 @@ databases:
 
 ### 恢复
 
-手动cp恢复
+```bash
+# 手动解压出备份文件，并将其拷贝到对应目录
+```
 
 ## 文件
 
@@ -484,7 +488,9 @@ databases:
 
 ### 恢复
 
-手动cp恢复
+```bash
+# 手动解压出备份文件，并将其拷贝到对应目录
+```
 
 
 

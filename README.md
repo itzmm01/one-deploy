@@ -15,8 +15,14 @@
 >etcd
 >
 >es
+>
+>zookeeper
+>
+>文件
 
 ## 参数
+
+
 
 ```bash
 # 是否自动加密密码,默认加密
@@ -32,7 +38,9 @@
 # 指定配置文件
   -file string
     	config file (default "./backupdb.yml")
+    	
 #---------恢复时使用参数
+
 # 数据库类型
   -type string
     	database type: redis|mysql|mongodb|etcd|es|postgresql    	
@@ -54,8 +62,26 @@
 # 恢复来源文件
   -src string
     	restore dir/file:  such '/tmp/backupdir/redis/dump.json' 
+  
+#----------mongodb
+  -authdb string
+        mongo authdb: admin (default "admin")
+#----------etcd
+  -Key string
+        etcd key (default "/etc/kubernetes/pki/etcd/server.key")
+  -cacert string
+        etcd cacert (default "/etc/kubernetes/pki/etcd/ca.crt")
+  -cert string
+        etcd cert (default "/etc/kubernetes/pki/etcd/server.crt")
+  -datadir string
+        etcd data-dir (default "/var/lib/etcd")
+  -https string
+        etcd https (default "no")
+
 
 ```
+
+
 
 ## 编译
 
@@ -85,6 +111,42 @@ cp example.yml xx.yml
 # 按照example.yml示例修改配置文件
 ./one-backup -file xx.yml
 ```
+
+## 备份选项
+
+### 本地存储
+
+```yaml
+#存储选项
+storewith:
+  # 类型(暂时支持本地存储和sftp)
+  type: sftp
+  # 本地保存路径
+  path: /tmp/backupdir
+```
+
+### sftp
+
+```yaml
+#存储选项
+storewith:
+  # 类型(暂时支持本地存储和sftp)
+  type: sftp
+  # 本地保存路径
+  path: /tmp/backupdir
+  # 远端主机
+  host: 192.168.146.134
+  # 端口
+  port: "22"
+  # 用户名
+  username: root
+  # 密码
+  password: BhaBUTSg3lMXHLVUkHmOfw==
+  # 远端存储路径
+  dstpath: /root/
+```
+
+
 
 ## mysql
 

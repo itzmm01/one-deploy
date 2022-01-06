@@ -6,9 +6,11 @@ import (
 	"one-backup/archive"
 	"one-backup/config"
 	"one-backup/keygen"
+	"one-backup/ssh"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -20,8 +22,10 @@ const Debug = false
 // base info
 type BaseModel struct {
 	TarFilename string
+	TarName     string
 	SaveDir     string
 	BackupDir   string
+	SaveInfo    map[string]string
 	BackupNum   int
 	DbInfo      map[string]string
 }
@@ -57,12 +61,19 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 			dbinfo["password"] = decryptRes
 		}
 	}
-
+	if configInfo.StoreWith["password"] != "" && autoEncrypt == "yes" {
+		decryptRes := keygen.AesDecryptCBC(configInfo.StoreWith["password"], "pass")
+		if decryptRes != "base64 error" {
+			configInfo.StoreWith["password"] = decryptRes
+		}
+	}
 	nameDir := fmt.Sprintf("%v-%v", dbinfo["name"], time.Now().Format("2006.01.02.15.04.05"))
 	base := BaseModel{
 		TarFilename: fmt.Sprintf("%v/%v/%v.tar.gz", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
+		TarName:     fmt.Sprintf("%v.tar.gz", nameDir),
 		SaveDir:     fmt.Sprintf("%v/%v/", configInfo.StoreWith["path"], dbinfo["type"]),
 		BackupDir:   fmt.Sprintf("%v/%v/%v", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
+		SaveInfo:    configInfo.StoreWith,
 		BackupNum:   configInfo.BackupNum,
 		DbInfo:      dbinfo,
 	}
@@ -308,4 +319,17 @@ func (ctx BaseModel) Backup() {
 		fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]),
 		ctx.BackupNum,
 	)
+	if ctx.SaveInfo["type"] == "sftp" {
+		sftp := new(ssh.ClientConfig)
+		sshPort, _ := strconv.ParseInt(ctx.SaveInfo["port"], 10, 64)
+		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"])
+		if err := sftp.Upload(ctx.TarFilename, fmt.Sprintf("%v/%v", ctx.SaveInfo["dstpath"], ctx.TarName)); err != nil {
+			logger.Info("put sftp fail")
+		} else {
+			logger.Info("put sftp success")
+		}
+
+	} else if ctx.SaveInfo["type"] == "ftp" {
+		logger.Info("put ftp")
+	}
 }

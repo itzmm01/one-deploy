@@ -39,6 +39,40 @@ func passBase(autoEncrypt, pass string) string {
 	}
 
 }
+func intToString(val interface{}) string {
+	switch val.(type) {
+	case int:
+		return strconv.Itoa(val.(int))
+	default:
+		return strings.Replace(val.(string), " ", "", -1)
+	}
+}
+
+func interfaceTomap(inter interface{}, autoEncrypt string) map[string]string {
+	tmp1 := map[string]string{}
+	switch inter.(type) {
+	case map[interface{}]interface{}:
+		for k, v := range inter.(map[interface{}]interface{}) {
+			switch v.(type) {
+			case string:
+				tmp1[k.(string)] = strings.Replace(v.(string), " ", "", -1)
+			case int:
+				tmp := v.(int)
+				tmp1[k.(string)] = strconv.Itoa(tmp)
+			}
+		}
+	case map[string]string:
+		tmp1 = inter.(map[string]string)
+	}
+	for k, v := range tmp1 {
+		if k == "password" {
+			tmp1["password"] = passBase(autoEncrypt, v)
+			continue
+		}
+	}
+
+	return tmp1
+}
 
 // init
 func Init(autoEncrypt, filename, filepath string) ModelConfig {
@@ -95,28 +129,7 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 	case []interface{}:
 		databasesList := viper.Get("databases").([]interface{})
 		for _, database := range databasesList {
-			tmp1 := map[string]string{}
-			switch database.(type) {
-			case map[interface{}]interface{}:
-				for k, v := range database.(map[interface{}]interface{}) {
-					switch v.(type) {
-					case string:
-						tmp1[k.(string)] = strings.Replace(v.(string), " ", "", -1)
-					case int:
-						tmp := v.(int)
-						tmp1[k.(string)] = strconv.Itoa(tmp)
-					}
-				}
-			case map[string]string:
-				tmp1 = database.(map[string]string)
-			}
-			for k, v := range tmp1 {
-				if k == "password" {
-					tmp1["password"] = passBase(autoEncrypt, v)
-					continue
-				}
-			}
-			config.Databases = append(config.Databases, tmp1)
+			config.Databases = append(config.Databases, interfaceTomap(database, autoEncrypt))
 		}
 	case []map[string]string:
 		databasesList := viper.Get("databases").([]map[string]string)

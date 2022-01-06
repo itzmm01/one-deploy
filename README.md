@@ -146,6 +146,27 @@ storewith:
   dstpath: /root/
 ```
 
+### ftp
+
+```yaml
+#存储选项
+storewith:
+  # 类型(暂时支持本地存储和sftp)
+  type: ftp
+  # 本地保存路径
+  path: /tmp/backupdir
+  # 远端主机
+  host: 192.168.146.134
+  # 端口
+  port: "21"
+  # 用户名
+  username: ftp
+  # 密码
+  password: BhaBUTSg3lMXHLVUkHmOfw==
+  # 远端存储路径
+  dstpath: /root/
+```
+
 
 
 ## mysql

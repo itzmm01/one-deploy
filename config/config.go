@@ -12,7 +12,7 @@ import (
 
 // ModelConfig for special case
 type ModelConfig struct {
-	StoreWith    map[string]interface{}
+	StoreWith    map[string]string
 	CompressType string
 	BackupNum    int
 	Databases    []map[string]string
@@ -54,7 +54,40 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		logger.Error("config file: storewith|compresstype|backupnum error")
 		os.Exit(1)
 	}
-	config.StoreWith = viper.Get("storewith").(map[string]interface{})
+
+	switch viper.Get("storewith").(type) {
+	case map[string]string:
+		tmp1 := map[string]string{}
+		for k, v := range viper.Get("storewith").(map[string]string) {
+			if k == "password" {
+				tmp1["password"] = passBase(autoEncrypt, v)
+				continue
+			}
+			tmp1[k] = v
+		}
+		config.StoreWith = tmp1
+	case map[string]interface{}:
+		tmp1 := map[string]string{}
+		for k, v := range viper.Get("storewith").(map[string]interface{}) {
+			if k == "password" {
+				tmp1["password"] = passBase(autoEncrypt, v.(string))
+				continue
+			}
+			switch v.(type) {
+			case int:
+				tmp1[k] = strconv.Itoa(v.(int))
+				continue
+			default:
+				tmp1[k] = v.(string)
+			}
+
+		}
+		config.StoreWith = tmp1
+	default:
+		logger.Error("config file: StoreWith error")
+		os.Exit(1)
+	}
+	viper.Set("storewith", config.StoreWith)
 	config.CompressType = viper.Get("compresstype").(string)
 	config.BackupNum = viper.Get("backupnum").(int)
 

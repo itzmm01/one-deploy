@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/jlaffaye/ftp v0.0.0-20211117213618-11820403398b
 	github.com/pkg/sftp v1.13.4
 	github.com/spf13/viper v1.9.0
 	github.com/wonderivan/logger v1.0.0

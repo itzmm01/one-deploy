@@ -5,6 +5,7 @@ import (
 	"log"
 	"one-backup/archive"
 	"one-backup/config"
+	"one-backup/ftpclient"
 	"one-backup/keygen"
 	"one-backup/ssh"
 	"os"
@@ -330,6 +331,16 @@ func (ctx BaseModel) Backup() {
 		}
 
 	} else if ctx.SaveInfo["type"] == "ftp" {
-		logger.Info("put ftp")
+		ftp := ftpclient.FtpClient{
+			Host:     ctx.SaveInfo["host"],
+			Port:     ctx.SaveInfo["port"],
+			Username: ctx.SaveInfo["username"],
+			Password: ctx.SaveInfo["password"],
+		}
+		if err := ftp.Upload(ctx.TarFilename, ctx.SaveInfo["dstpath"], ctx.TarName); err != nil {
+			logger.Info("put ftp fail")
+		} else {
+			logger.Info("put ftp success")
+		}
 	}
 }

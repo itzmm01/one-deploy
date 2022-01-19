@@ -109,29 +109,23 @@ func main() {
 	} else if *mode == "restore" {
 		base := database.BaseModel{}
 		base.DbInfo = map[string]string{
-			"execpath":        execPath,
-			"dbType":          *dbType,
-			"host":            *host,
-			"port":            *port,
-			"username":        *username,
-			"password":        *password,
-			"db":              *db,
-			"src":             *src,
-			"authdb":          *authdb,
-			"https":           *https,
-			"cacert":          *cacert,
-			"cert":            *cert,
-			"key":             *certkey,
-			"etcddatadir":     *etcddatadir,
-			"etcdName":        *etcdname,
-			"etcdCluster":     *etcdcluster,
-			"etcdCluserToken": *etcdclustertoken,
-			"sshhost":         *sshhost,
-			"sshport":         *sshport,
-			"sshuser":         *sshuser,
-			"sshpassword":     *sshpassword,
-			"dockername":      *dockername,
-			"dockernetwork":   *dockernetwork,
+			"execpath": execPath,
+			"dbType":   *dbType,
+			"host":     *host,
+			"port":     *port,
+			"username": *username,
+			"password": *password,
+			"db":       *db,
+			"src":      *src,
+			"authdb":   *authdb,
+			// etcd https
+			"https": *https, "cacert": *cacert, "cert": *cert, "key": *certkey,
+			// etcd-cluster
+			"etcddatadir": *etcddatadir, "etcdName": *etcdname, "etcdCluster": *etcdcluster, "etcdCluserToken": *etcdclustertoken,
+			// etcd-remote host
+			"sshhost": *sshhost, "sshport": *sshport, "sshuser": *sshuser, "sshpassword": *sshpassword,
+			// etcd-docker info
+			"dockername": *dockername, "dockernetwork": *dockernetwork,
 		}
 		database.Restore(base)
 	}

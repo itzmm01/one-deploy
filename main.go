@@ -16,23 +16,19 @@ import (
 	"github.com/wonderivan/logger"
 )
 
-const Debug = false
-
-func setPath() {
+func setPath(execPath string) {
 	// 配置BIN环境变量
-	absPath1, _ := filepath.Abs("./")
 	oldPath := os.Getenv("PATH")
-	os.Setenv("oneBackupPath", absPath1+`/bin`)
-	newPath := oldPath + ":" + absPath1 + "/bin"
+	os.Setenv("oneBackupPath", execPath+`/bin`)
+	newPath := oldPath + ":" + execPath + "/bin"
 
 	if runtime.GOOS == "linux" {
 		pgStr := "cd " + os.Getenv("oneBackupPath") + " && tar xf pglib.tgz && tar xf node.tar.gz"
-		cmd.Run(pgStr, Debug)
+		cmd.Run(pgStr, config.Debug)
 		os.Setenv("LD_LIBRARY_PATH", os.Getenv("oneBackupPath")+"/pglib")
-		newPath1 := newPath + ":" + absPath1 + "/bin/node/bin"
+		newPath1 := newPath + ":" + execPath + "/bin/node/bin"
 		os.Setenv("PATH", newPath1)
-
-		cmd.Run(fmt.Sprintf("cd %v/bin/ && chmod +x ./* ./node/bin/*", absPath1), Debug)
+		cmd.Run(fmt.Sprintf("cd %v/bin/ && chmod +x * ./node/bin/*", execPath), config.Debug)
 	}
 
 }
@@ -41,8 +37,8 @@ func promptInformation() {
 	conf := 1  // 配置、终端默认设置
 	bg := 32   // 背景色、终端默认设置
 	text := 40 // 前景色、红色
-	fmt.Printf("\n %c[%d;%d;%dm%s%c[0m\n\n", 0x1B, conf, bg, text, "本工具适用于少量元数据的备份，如遇到超大数据请选择其它工具", 0x1B)
-	fmt.Printf("\n %c[%d;%d;%dm%s%c[0m\n\n", 0x1B, conf, bg, text, "5s后继续， ctrl+c 取消", 0x1B)
+	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, conf, bg, text, "本工具适用于少量元数据的备份，如遇到超大数据请选择其它工具", 0x1B)
+	fmt.Printf("%c[%d;%d;%dm%s%c[0m\n", 0x1B, conf, bg, text, "5s后继续， ctrl+c 取消", 0x1B)
 	time.Sleep(time.Duration(5) * time.Second)
 }
 
@@ -63,7 +59,16 @@ func main() {
 	cacert := flag.String("cacert", "/etc/kubernetes/pki/etcd/ca.crt", "etcd cacert")
 	cert := flag.String("cert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
 	certkey := flag.String("Key", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
-	dataDir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir")
+	etcddatadir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir: /var/lib/etcd")
+	etcdname := flag.String("etcdname", "etcd1", "etcdname: etcd1")
+	etcdcluster := flag.String("etcdcluster", "", "etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379")
+	etcdclustertoken := flag.String("etcdclustertoken", "", "etcdclustertoken: ")
+	dockername := flag.String("dockername", "", "dockername: etcd1")
+	dockernetwork := flag.String("dockernetwork", "host", "dockernetwork: host|nat")
+	sshhost := flag.String("sshhost", "", "sshhost: 192.168.12.1")
+	sshport := flag.String("sshport", "22", "sshport: 22")
+	sshuser := flag.String("sshuser", "root", "sshuser: root")
+	sshpassword := flag.String("sshpassword", "", "sshpassword: root")
 	src := flag.String("src", "", "restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'")
 
 	flag.Parse()
@@ -75,7 +80,10 @@ func main() {
 
 	promptInformation()
 
-	setPath()
+	execFile, _ := filepath.Abs(os.Args[0])
+	execFileTmp1 := strings.Split(execFile, `/`)
+	execPath := strings.Join(execFileTmp1[0:len(execFileTmp1)-1], `/`)
+	setPath(execPath)
 
 	if *mode == "backup" {
 		if _, err := os.Lstat(*configFile); err != nil {
@@ -84,13 +92,13 @@ func main() {
 			os.Exit(1)
 		}
 
-		absPath1, _ := filepath.Abs(*configFile)
-		absDir := strings.Replace(absPath1, "\\", "/", -1)
+		absPath, _ := filepath.Abs(*configFile)
+		absPath_format := strings.Replace(absPath, "\\", "/", -1)
 
-		pathStrList := strings.Split(absDir, `/`)
+		pathStrList := strings.Split(absPath_format, `/`)
 		fileName := pathStrList[len(pathStrList)-1]
 
-		filePath := strings.Replace(absDir, fileName, "", -1)
+		filePath := strings.Replace(absPath_format, fileName, "", -1)
 		configFlag := strings.Replace(fileName, ".yml", "", -1)
 
 		configInfo := config.Init(*autoEncrypt, configFlag, filePath)
@@ -101,19 +109,29 @@ func main() {
 	} else if *mode == "restore" {
 		base := database.BaseModel{}
 		base.DbInfo = map[string]string{
-			"dbType":   *dbType,
-			"host":     *host,
-			"port":     *port,
-			"username": *username,
-			"password": *password,
-			"db":       *db,
-			"src":      *src,
-			"authdb":   *authdb,
-			"https":    *https,
-			"cacert":   *cacert,
-			"cert":     *cert,
-			"key":      *certkey,
-			"dataDir":  *dataDir,
+			"execpath":        execPath,
+			"dbType":          *dbType,
+			"host":            *host,
+			"port":            *port,
+			"username":        *username,
+			"password":        *password,
+			"db":              *db,
+			"src":             *src,
+			"authdb":          *authdb,
+			"https":           *https,
+			"cacert":          *cacert,
+			"cert":            *cert,
+			"key":             *certkey,
+			"etcddatadir":     *etcddatadir,
+			"etcdName":        *etcdname,
+			"etcdCluster":     *etcdcluster,
+			"etcdCluserToken": *etcdclustertoken,
+			"sshhost":         *sshhost,
+			"sshport":         *sshport,
+			"sshuser":         *sshuser,
+			"sshpassword":     *sshpassword,
+			"dockername":      *dockername,
+			"dockernetwork":   *dockernetwork,
 		}
 		database.Restore(base)
 	}

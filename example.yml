@@ -95,21 +95,19 @@ databases:
   - name: etcd
     # 数据库类型
     type: etcd
-    # etcd链接信息
-    host: 127.0.0.1
-    # 端口
-    port: 49514
+    # etcd连接信息, https://192.168.1.11:2380
+    endpoints: http://127.0.0.1:2379
+    # 是否使用https, yes|no
+    https: no
     # 用户
     username: xxx
     # 密码
     password: xxx
-    # 是否使用https, yes|no
-    https: no
-    # ca证书路径
+    # ca证书路径,https=yes时使用
     cacert: /etc/etcd/ssl/ca.pem
-    # 客户端证书路径
+    # 客户端证书路径,https=yes时使用
     cert: /etc/etcd/ssl/etcd.pem
-    # 客户端密钥路径
+    # 客户端密钥路径,https=yes时使用
     key: /etc/etcd/ssl/etcd-key.pem
      
     # 备份名

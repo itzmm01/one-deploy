@@ -29,6 +29,7 @@ type BaseModel struct {
 	SaveInfo    map[string]string
 	BackupNum   int
 	DbInfo      map[string]string
+	NowTime     string
 }
 
 // 清理文件
@@ -68,7 +69,8 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 			configInfo.StoreWith["password"] = decryptRes
 		}
 	}
-	nameDir := fmt.Sprintf("%v-%v", dbinfo["name"], time.Now().Format("2006.01.02.15.04.05"))
+	nowTime := time.Now().Format("2006.01.02.15.04.05")
+	nameDir := fmt.Sprintf("%v-%v", dbinfo["name"], nowTime)
 	base := BaseModel{
 		TarFilename: fmt.Sprintf("%v/%v/%v.tar.gz", configInfo.StoreWith["path"], dbinfo["type"], nameDir),
 		TarName:     fmt.Sprintf("%v.tar.gz", nameDir),
@@ -77,6 +79,7 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 		SaveInfo:    configInfo.StoreWith,
 		BackupNum:   configInfo.BackupNum,
 		DbInfo:      dbinfo,
+		NowTime:     nowTime,
 	}
 
 	if _, err := os.Stat(base.BackupDir); err != nil {
@@ -92,6 +95,7 @@ func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt st
 // restore
 func Restore(base BaseModel) error {
 	logger.Info("Restore starting")
+	nowTime := time.Now().Format("2006.01.02.15.04.05")
 	errList := []error{}
 	switch base.DbInfo["dbType"] {
 	case "redis":
@@ -120,8 +124,22 @@ func Restore(base BaseModel) error {
 			errList = append(errList, err)
 		}
 	case "etcd":
+		base.DbInfo["endpoints"] = base.DbInfo["host"]
 		etcd := etcdObj(base)
-		if err := etcd.Restore(base.DbInfo["src"], base.DbInfo["dataDir"]); err != nil {
+		otherInfo := map[string]string{
+			"execpath":      base.DbInfo["execpath"],
+			"datadir":       base.DbInfo["etcddatadir"],
+			"name":          base.DbInfo["etcdName"],
+			"cluster":       base.DbInfo["etcdCluster"],
+			"clustertoken":  base.DbInfo["etcdCluserToken"],
+			"nowtime":       nowTime,
+			"dockernetwork": base.DbInfo["dockernetwork"],
+			"sshhost":       base.DbInfo["sshhost"],
+			"sshport":       base.DbInfo["sshport"],
+			"sshuser":       base.DbInfo["sshuser"],
+			"sshpassword":   base.DbInfo["sshpassword"],
+		}
+		if err := etcd.Restore(base.DbInfo["src"], otherInfo); err != nil {
 			errList = append(errList, err)
 		}
 	default:
@@ -159,7 +177,7 @@ func etcdObj(ctx BaseModel) Etcd {
 		SaveDir:     ctx.SaveDir,
 		BackupDir:   ctx.BackupDir,
 		Name:        ctx.DbInfo["name"],
-		Host:        ctx.DbInfo["host"],
+		Host:        ctx.DbInfo["endpoints"],
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
 		Password:    ctx.DbInfo["password"],
@@ -167,6 +185,7 @@ func etcdObj(ctx BaseModel) Etcd {
 		Cacert:      ctx.DbInfo["cacert"],
 		Cert:        ctx.DbInfo["cert"],
 		Key:         ctx.DbInfo["key"],
+		DockerName:  ctx.DbInfo["dockername"],
 	}
 }
 

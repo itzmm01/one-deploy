@@ -407,48 +407,74 @@ storewith:
   # 路径
   path: /tmp/backupdir
 databases:
-    # 备份任务名
   - name: etcd
     # 数据库类型
     type: etcd
-    # etcd链接信息
-    host: 127.0.0.1
-    # 端口
-    port: 49514
-    # 用户
-    username: root
-    # 密码
-    password: Amt_2018
+    # etcd连接信息, http://xxx，集群使用"etcd1=http://xxx,etcd2=http://xxx,etcd3=xxx"
+    endpoints: http://127.0.0.1:2379
     # 是否使用https, yes|no
     https: no
-    # ca证书路径
-    cacert: /etc/kubernetes/pki/etcd/ca.crt
-    # 客户端证书路径
-    cert: /etc/kubernetes/pki/etcd/server.crt
-    # 客户端密钥路径
-    key: /etc/kubernetes/pki/etcd/server.key
+    # 用户
+    username: xxx
+    # 密码
+    password: xxx
+    # ca证书路径,https=yes时使用
+    cacert: /etc/etcd/ssl/ca.pem
+    # 客户端证书路径,https=yes时使用
+    cert: /etc/etcd/ssl/etcd.pem
+    # 客户端密钥路径,https=yes时使用
+    key: /etc/etcd/ssl/etcd-key.pem
     
 ```
 
 ### 恢复
 
+`提示:`
 
+>执行时,如果datadir目录存在会自动将其重命名在原有目录下,
+>
 
-```bash
-# 暂时支持单机etcd
-./one-backup -mode restore -type etcd -host 192.168.146.134 -port 49154 -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-2021.12.27.22.43.14/etcd.db
-```
-
-集群请手动使用etcdctl恢复
+单机
 
 ```bash
 # 示例
-./bin/etcdctl snapshot restore snap1
---name etcd-41
---initial-cluster etcd-41=http://192.168.31.41:2380,etcd-42=http://192.168.31.42:2380,etcd-43=http://192.168.31.43:2380
---initial-advertise-peer-urls http://192.168.31.41:2380
---data-dir /var/lib/etcd/cluster.etcd
+# -etcdname http://192.168.146.134:12380 需要恢复的etcd连接信息
+./one-backup -mode restore -type etcd -etcdname http://192.168.146.134:12380 -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-2021.12.27.22.43.14/etcd.db
 ```
+
+本机集群,集群内所有节点都需要还原
+
+```bash
+# 示例
+# -etcdcluster "etcd1=http://192.168.146.134:12380,etcd2=http://192.168.146.134:22380,etcd3=192.168.146.134:32380" etcd集群信息
+# -etcdname etcd1 需要恢复的etcd名称
+# -datadir /etcd1.etcd etcd数据目录
+# -etcdclustertoken etcd-cluster etcd集群token
+# -src /tmp/backupdir/etcd/etcd1-2022.01.18.06.06.58/etcd.db 备份的文件路径
+# -dockername etcd1 docker部署时的容器名,非容器跳过此参数
+# -dockernetwork host 网络模式nat/host(默认host),非容器跳过此参数
+./one-backup -mode restore -type etcd -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-cluter-2022.01.18.16.04.05/etcd.db -etcdcluster "etcd1=http://192.168.146.134:12380,etcd2=http://192.168.146.134:22380,etcd3=192.168.146.134:32380" -etcdname etcd1 -etcdclustertoken etcd-cluster -dockername etcd1 
+```
+
+远程集群，ssh连接,集群内所有节点都需要还原
+
+```bash
+# 示例
+# -etcdcluster "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380" etcd集群信息
+# -etcdname etcd1 需要恢复的etcd名称
+# -etcdclustertoken etcd-cluster etcd集群token
+# -datadir /etcd1.etcd etcd数据目录
+# -src /tmp/backupdir/etcd/etcd1-2022.01.18.06.06.58/etcd.db 备份的文件路径
+# -dockername etcd docke部署时指定docker名称
+# -dockernetwork host doceker部署时指定网络模式
+# -sshhost 192.168.146.135 ssh连接信息
+# -sshport 22 ssh连接信息
+# -sshuser root ssh连接信息
+# -sshpassword Amt_2018ssh连接信息
+./one-backup -mode restore -type etcd -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-cluter-2022.01.18.16.04.05/etcd.db -etcdcluster "etcd1=http://192.168.146.134:2380,etcd2=http://192.168.146.135:2380,etcd3=http://192.168.146.136:2380" -etcdname etcd1 -etcdclustertoken etcd-cluster -dockername etcd -dockernetwork host -sshhost 192.168.146.135 -sshport 22 -sshuser root -sshpassword Amt_2018
+```
+
+
 
 ## zookeeper
 

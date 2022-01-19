@@ -10,6 +10,8 @@ import (
 	"github.com/wonderivan/logger"
 )
 
+const Debug = false
+
 // ModelConfig for special case
 type ModelConfig struct {
 	StoreWith    map[string]string

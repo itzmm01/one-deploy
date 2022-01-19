@@ -3,8 +3,13 @@ package database
 import (
 	"fmt"
 	"one-backup/cmd"
-	"one-backup/tool"
+	"one-backup/config"
+	"one-backup/ssh"
 	"os"
+	"strconv"
+	"strings"
+
+	"github.com/wonderivan/logger"
 )
 
 // info
@@ -32,7 +37,8 @@ type Etcd struct {
 	// 证书路径
 	Cert string
 	// 证书路径
-	Key string
+	Key        string
+	DockerName string
 }
 
 // backup
@@ -53,53 +59,127 @@ func (ctx Etcd) Backup() error {
 	}
 	if ctx.Https == "yes" {
 		cmdStr += fmt.Sprintf(
-			"--cacert=%v --cert=%v --key=%v --endpoints=https://%v:%v snapshot save %v/etcd.db",
-			ctx.Cacert, ctx.Cert, ctx.Key, ctx.Host, ctx.Port, ctx.BackupDir,
+			"--cacert=%v --cert=%v --key=%v --endpoints=%v snapshot save %v/etcd.db",
+			ctx.Cacert, ctx.Cert, ctx.Key, ctx.Host, ctx.BackupDir,
 		)
 	} else {
 		cmdStr += fmt.Sprintf(
-			"--endpoints=http://%v:%v snapshot save %v/etcd.db",
-			ctx.Host, ctx.Port, ctx.BackupDir,
+			"--endpoints=%v snapshot save %v/etcd.db",
+			ctx.Host, ctx.BackupDir,
 		)
 	}
-	return cmd.Run(cmdStr, Debug)
+	return cmd.Run(cmdStr, config.Debug)
+}
+
+func getDockerCmdStr(dockerName, execPath, srcFilePath, cmdStr string, other map[string]string) string {
+	if other["dockername"] != "" && other["dockernetwork"] == "nat" {
+		cpCmdStr := fmt.Sprintf("docker cp %v %v:/root/ ; docker cp %v %v:/tmp/",
+			execPath, dockerName, srcFilePath, dockerName,
+		)
+		dockerCleanStr := fmt.Sprintf("docker exec -i %s /bin/sh -c 'ls -d %v &>/dev/null && mv -f %v %v-%v || echo' ",
+			dockerName, other["datadir"], other["datadir"], other["datadir"], other["nowtime"],
+		)
+		if other["sshhost"] == "" {
+			cmd.Run(cpCmdStr, config.Debug)
+			cmd.Run(dockerCleanStr, config.Debug)
+		} else {
+			sshClient := getSSH(other)
+			if res, err := sshClient.RunShell(cpCmdStr); err != nil {
+				logger.Error(res, err)
+				os.Exit(1)
+			}
+			if res, err := sshClient.RunShell(dockerCleanStr); err != nil {
+				logger.Error(res, err)
+				os.Exit(1)
+			}
+		}
+		return fmt.Sprintf("docker exec -i %s /bin/sh -c '%s snapshot restore /tmp/etcd.db'", dockerName, cmdStr)
+
+	} else {
+		CleanStr := fmt.Sprintf("ls -d %v &>/dev/null && mv -f %v %v-%v || echo",
+			other["datadir"], other["datadir"], other["datadir"], other["nowtime"],
+		)
+		if other["sshhost"] == "" {
+			cmd.Run(CleanStr, config.Debug)
+		} else {
+			sshClient := getSSH(other)
+			if res, err := sshClient.RunShell(CleanStr); err != nil {
+				logger.Error(res, err)
+				os.Exit(1)
+			}
+			cmdStr = "/root/" + cmdStr
+		}
+		return cmdStr + "snapshot restore " + srcFilePath
+	}
+}
+
+func getSSH(other map[string]string) *ssh.ClientConfig {
+	sshClient := new(ssh.ClientConfig)
+	sshPort, _ := strconv.ParseInt(other["sshport"], 10, 64)
+	sshClient.CreateClient(other["sshhost"], sshPort, other["sshuser"], other["sshpassword"])
+	return sshClient
 }
 
 // Restore
-func (ctx Etcd) Restore(filePath, dataDir string) error {
-	message := `提示:
-需要删除原有数据总目录，不然恢复的时候有有各种问题。命令中需要指定数据目录 -datadir /var/lib/etcd，否则会产生默认工作目录，一个default的名称
-`
-	if tool.PleaseConfirm(message) != "YES" {
-		return nil
-	}
-
-	/*
-		etcdctl snapshot restore snap1
-		--name etcd-41
-		--initial-cluster
-		etcd-41=http://192.168.31.41:2380,etcd-42=http://192.168.31.42:2380,etcd-43=http://192.168.31.43:2380
-		--initial-advertise-peer-urls http://192.168.31.41:2380
-		--data-dir /var/lib/etcd/cluster.etcd
-		快照恢复时，会重新生成客户端id和集群id，所有的节点统一使用一个快照恢复集群
-	*/
-
-	os.Setenv("ETCDAPI", "3")
+// func (ctx Etcd) Restore(filePath, dataDir, etcdName, cluster, clusertoken, docker string) error {
+func (ctx Etcd) Restore(filePath string, other map[string]string) error {
 	cmdStr := "etcdctl --command-timeout=300s "
 
-	if ctx.Username != "" {
+	nodeInfo := map[string]string{}
+	clusterInfo := strings.Split(other["cluster"], `,`)
+	for _, node := range clusterInfo {
+		hostInfo := strings.Split(node, `=`)
+		nodeInfo[hostInfo[0]] = hostInfo[1]
+	}
+
+	if ctx.Username != "" && ctx.Password != "" {
 		cmdStr += fmt.Sprintf("--user=%v:%v ", ctx.Username, ctx.Password)
 	}
+
 	if ctx.Https == "yes" {
 		cmdStr += fmt.Sprintf(
-			"--cacert=%v --cert=%v --key=%v --endpoints=https://%v:%v snapshot restore %v --data-dir=\"%v\"",
-			ctx.Cacert, ctx.Cert, ctx.Key, ctx.Host, ctx.Port, filePath, dataDir,
-		)
-	} else {
-		cmdStr += fmt.Sprintf(
-			"--endpoints=http://%v:%v snapshot restore %v --data-dir=\"%v\"", ctx.Host, ctx.Port, filePath, dataDir,
+			"--cacert=%v --cert=%v --key=%v  ", ctx.Cacert, ctx.Cert, ctx.Key,
 		)
 	}
 
-	return cmd.Run(cmdStr, false)
+	if other["cluster"] != "" {
+		cmdStr += fmt.Sprintf(
+			"--name %v --initial-cluster=\"%v\" --initial-cluster-token=%v --initial-advertise-peer-urls=%v --data-dir=%v ",
+			other["name"], other["cluster"], other["clustertoken"], nodeInfo[other["name"]], other["datadir"],
+		)
+	} else {
+		cmdStr += fmt.Sprintf("--data-dir=%v ", other["datadir"])
+	}
+	execPath := other["execpath"]
+	srcFilePath := filePath
+
+	if other["sshhost"] != "" {
+		execPath = "/root/one-backup/"
+		srcFilePath = "/tmp/etcd.db"
+
+		sshClient := getSSH(other)
+		sshClient.Upload(other["execpath"]+"/bin/etcdctl", "/root/etcdctl")
+		sshClient.RunShell("chmod +x /root/etcdctl")
+		sshClient.Upload(filePath, srcFilePath)
+
+		cmdStr = getDockerCmdStr(ctx.DockerName, execPath, srcFilePath, cmdStr, other)
+		if res, err := sshClient.RunShell("ETCDCTL_API=3 " + cmdStr); err != nil {
+			logger.Error(res)
+			return err
+		} else {
+			_, err := sshClient.RunShell("docker restart " + ctx.DockerName)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+
+	} else {
+		cmdStr = getDockerCmdStr(ctx.DockerName, execPath, srcFilePath, cmdStr, other)
+		if err := cmd.Run("ETCDCTL_API=3 "+cmdStr, config.Debug); err != nil {
+			return err
+		} else {
+			return cmd.Run("docker restart "+ctx.DockerName, config.Debug)
+		}
+	}
 }

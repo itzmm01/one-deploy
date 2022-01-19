@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"one-backup/config"
 	"os/exec"
 	"runtime"
 
@@ -21,19 +22,19 @@ func Run(command string, debug bool) error {
 	var err error
 
 	sysType := runtime.GOOS
+	if config.Debug {
+		logger.Debug("command: ", command)
+	}
 	if sysType == "windows" {
 		result, err = exec.Command("cmd", "/c", command).CombinedOutput()
 		// logger.Error("no support system: ", sysType)
 	} else if sysType == "linux" {
-		result, err = exec.Command("/bin/bash", "-c", command).CombinedOutput()
+		result, err = exec.Command("/bin/sh", "-c", command).CombinedOutput()
 	} else {
 		logger.Error("no support system: ", sysType)
 	}
 
 	if err != nil {
-		if debug {
-			logger.Error("run cmd failed: ", command)
-		}
 		logger.Error("run cmd failed: ", err, ConvertByte2String(result, "GB18030"))
 
 	}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"one-backup/config"
 	"os"
 	"path"
 	"strings"
@@ -67,7 +68,9 @@ func (cliConf *ClientConfig) RunShell(shell string) (res string, error1 error) {
 		session *ssh.Session
 		err     error
 	)
-
+	if config.Debug {
+		logger.Debug(shell)
+	}
 	//获取session，这个session是用来远程执行操作的
 	if session, err = cliConf.sshClient.NewSession(); err != nil {
 		return "", err

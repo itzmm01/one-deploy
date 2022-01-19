@@ -59,6 +59,7 @@ func main() {
 	cacert := flag.String("cacert", "/etc/kubernetes/pki/etcd/ca.crt", "etcd cacert")
 	cert := flag.String("cert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
 	certkey := flag.String("Key", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
+	etcdservice := flag.String("var ", "etcd", "var : etcd.service")
 	etcddatadir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir: /var/lib/etcd")
 	etcdname := flag.String("etcdname", "etcd1", "etcdname: etcd1")
 	etcdcluster := flag.String("etcdcluster", "", "etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379")
@@ -121,7 +122,7 @@ func main() {
 			// etcd https
 			"https": *https, "cacert": *cacert, "cert": *cert, "key": *certkey,
 			// etcd-info
-			"etcddatadir": *etcddatadir, "etcdName": *etcdname,
+			"etcddatadir": *etcddatadir, "etcdName": *etcdname, "etcdservice": *etcdservice,
 			// etcd-cluster
 			"etcdCluster": *etcdcluster, "etcdCluserToken": *etcdclustertoken,
 			// etcd-remote host

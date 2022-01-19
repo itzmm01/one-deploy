@@ -120,18 +120,26 @@ func getSSH(other map[string]string) *ssh.ClientConfig {
 	return sshClient
 }
 
+func restartEtcd(dockerName, serviceName string, other map[string]string) error {
+	restartCmdStr := ""
+	if dockerName != "" {
+		restartCmdStr = "docker restart " + dockerName
+	} else {
+		restartCmdStr = "systemctl restart " + serviceName
+	}
+	if other["cluster"] != "" {
+		sshClient := getSSH(other)
+		_, err := sshClient.RunShell(restartCmdStr)
+		return err
+	} else {
+		return cmd.Run(restartCmdStr, false)
+	}
+}
+
 // Restore
 // func (ctx Etcd) Restore(filePath, dataDir, etcdName, cluster, clusertoken, docker string) error {
 func (ctx Etcd) Restore(filePath string, other map[string]string) error {
 	cmdStr := "etcdctl --command-timeout=300s "
-
-	nodeInfo := map[string]string{}
-	clusterInfo := strings.Split(other["cluster"], `,`)
-	for _, node := range clusterInfo {
-		hostInfo := strings.Split(node, `=`)
-		nodeInfo[hostInfo[0]] = hostInfo[1]
-	}
-
 	if ctx.Username != "" && ctx.Password != "" {
 		cmdStr += fmt.Sprintf("--user=%v:%v ", ctx.Username, ctx.Password)
 	}
@@ -143,12 +151,18 @@ func (ctx Etcd) Restore(filePath string, other map[string]string) error {
 	}
 
 	if other["cluster"] != "" {
+		nodeInfo := map[string]string{}
+		clusterInfo := strings.Split(other["cluster"], `,`)
+		for _, node := range clusterInfo {
+			hostInfo := strings.Split(node, `=`)
+			nodeInfo[hostInfo[0]] = hostInfo[1]
+		}
 		cmdStr += fmt.Sprintf(
 			"--name %v --initial-cluster=\"%v\" --initial-cluster-token=%v --initial-advertise-peer-urls=%v --data-dir=%v ",
 			other["name"], other["cluster"], other["clustertoken"], nodeInfo[other["name"]], other["datadir"],
 		)
 	} else {
-		cmdStr += fmt.Sprintf("--data-dir=%v ", other["datadir"])
+		cmdStr += fmt.Sprintf("--data-dir=%v --endpoints=%v ", other["datadir"], other["name"])
 	}
 	execPath := other["execpath"]
 	srcFilePath := filePath
@@ -167,11 +181,7 @@ func (ctx Etcd) Restore(filePath string, other map[string]string) error {
 			logger.Error(res)
 			return err
 		} else {
-			_, err := sshClient.RunShell("docker restart " + ctx.DockerName)
-			if err != nil {
-				return err
-			}
-			return nil
+			return restartEtcd(ctx.DockerName, other["etcdservice"], other)
 		}
 
 	} else {
@@ -179,7 +189,7 @@ func (ctx Etcd) Restore(filePath string, other map[string]string) error {
 		if err := cmd.Run("ETCDCTL_API=3 "+cmdStr, config.Debug); err != nil {
 			return err
 		} else {
-			return cmd.Run("docker restart "+ctx.DockerName, config.Debug)
+			return restartEtcd(ctx.DockerName, other["etcdservice"], other)
 		}
 	}
 }

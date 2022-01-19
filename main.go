@@ -120,8 +120,10 @@ func main() {
 			"authdb":   *authdb,
 			// etcd https
 			"https": *https, "cacert": *cacert, "cert": *cert, "key": *certkey,
+			// etcd-info
+			"etcddatadir": *etcddatadir, "etcdName": *etcdname,
 			// etcd-cluster
-			"etcddatadir": *etcddatadir, "etcdName": *etcdname, "etcdCluster": *etcdcluster, "etcdCluserToken": *etcdclustertoken,
+			"etcdCluster": *etcdcluster, "etcdCluserToken": *etcdclustertoken,
 			// etcd-remote host
 			"sshhost": *sshhost, "sshport": *sshport, "sshuser": *sshuser, "sshpassword": *sshpassword,
 			// etcd-docker info

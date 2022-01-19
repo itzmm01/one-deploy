@@ -439,7 +439,9 @@ databases:
 ```bash
 # 示例
 # -etcdname http://192.168.146.134:12380 需要恢复的etcd连接信息
-./one-backup -mode restore -type etcd -etcdname http://192.168.146.134:12380 -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-2021.12.27.22.43.14/etcd.db
+# -dockername etcd1 docker部署时的容器名,非容器跳过此参数
+# -dockernetwork host 网络模式nat/host(默认host),非容器跳过此参数
+./one-backup -mode restore -type etcd -etcdname http://192.168.146.134:12380 -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-2021.12.27.22.43.14/etcd.db -dockername etcd
 ```
 
 本机集群,集群内所有节点都需要还原
@@ -465,8 +467,8 @@ databases:
 # -etcdclustertoken etcd-cluster etcd集群token
 # -datadir /etcd1.etcd etcd数据目录
 # -src /tmp/backupdir/etcd/etcd1-2022.01.18.06.06.58/etcd.db 备份的文件路径
-# -dockername etcd docke部署时指定docker名称
-# -dockernetwork host doceker部署时指定网络模式
+# -dockername etcd1 docker部署时的容器名,非容器跳过此参数
+# -dockernetwork host 网络模式nat/host(默认host),非容器跳过此参数
 # -sshhost 192.168.146.135 ssh连接信息
 # -sshport 22 ssh连接信息
 # -sshuser root ssh连接信息

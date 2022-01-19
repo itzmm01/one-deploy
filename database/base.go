@@ -138,6 +138,7 @@ func Restore(base BaseModel) error {
 			"sshport":       base.DbInfo["sshport"],
 			"sshuser":       base.DbInfo["sshuser"],
 			"sshpassword":   base.DbInfo["sshpassword"],
+			"etcdservice":   base.DbInfo["etcdservice"],
 		}
 		if err := etcd.Restore(base.DbInfo["src"], otherInfo); err != nil {
 			errList = append(errList, err)

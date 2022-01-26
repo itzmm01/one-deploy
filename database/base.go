@@ -420,9 +420,10 @@ func (ctx BaseModel) Backup() {
 		BackupDirName[len(BackupDirName)-1],
 		ctx.TarFilename,
 	)
+	putRemote(ctx)
 
 	cleanHistoryFile(
 		fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]), ctx,
 	)
-	putRemote(ctx)
+
 }

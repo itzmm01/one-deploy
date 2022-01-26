@@ -119,8 +119,8 @@ cp example.yml xx.yml
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
-  type: sftp
+  # 类型
+  type: local
   # 本地保存路径
   path: /tmp/backupdir
 ```
@@ -130,18 +130,18 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
+  # 类型
   type: sftp
   # 本地保存路径
   path: /tmp/backupdir
-  # 远端主机
+  # 添加自己的sftp远端主机
   host: 192.168.146.134
-  # 端口
+  # 添加自己的sftp端口
   port: "22"
-  # 用户名
+  # 添加自己的sftp用户名
   username: root
-  # 密码
-  password: BhaBUTSg3lMXHLVUkHmOfw==
+  # 添加自己的sftp密码
+  password: xxx
   # 远端存储路径
   dstpath: /root/
 ```
@@ -151,20 +151,41 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
+  # 类型
   type: ftp
   # 本地保存路径
   path: /tmp/backupdir
-  # 远端主机
+  # 添加自己的ftp服务器
   host: 192.168.146.134
-  # 端口
+  # 添加自己的ftp端口
   port: "21"
-  # 用户名
+  # 添加自己的ftp用户名
   username: ftp
-  # 密码
+  # 添加自己的ftp密码
   password: BhaBUTSg3lMXHLVUkHmOfw==
-  # 远端存储路径
+  # 添加自己的ftp存储路径
   dstpath: /root/
+```
+
+## S3
+
+```yaml
+#存储选项
+storewith:
+  # 类型
+  type: s3
+  # 本地保存路径
+  path: /tmp/backupdir
+  # 添加自己的存储桶名
+  bucket: test1
+  # 添加自己的s3保存路径
+  dstpath: /
+  # 添加自己的AWS 区域
+  region: ap-northeast-2
+  # 添加自己的账号access_key_id
+  access_key_id: xxx
+  # 添加自己的账号secret_access_key
+  secret_access_key: xxx
 ```
 
 

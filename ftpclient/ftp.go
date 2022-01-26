@@ -43,3 +43,24 @@ func (ctx FtpClient) Upload(srcFile, dstPath, fileName string) error {
 	c.Logout()
 	return nil
 }
+
+// delete
+func (ctx FtpClient) Delete(filePath string) error {
+	ftpServer := fmt.Sprintf("%v:%v", ctx.Host, ctx.Port)
+	c, err := ftp.Dial(ftpServer, ftp.DialWithTimeout(5*time.Second))
+	defer c.Quit()
+	if err != nil {
+		return err
+	}
+	err = c.Login(ctx.Username, ctx.Password)
+	if err != nil {
+		return err
+	}
+	err = c.Delete(filePath)
+	if err != nil {
+		return err
+	}
+
+	c.Logout()
+	return nil
+}

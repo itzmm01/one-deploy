@@ -97,7 +97,7 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 	if len(errList) > 0 {
 		logger.Error("clean remote file fail: ", remotefilePath, errList[0])
 	} else {
-		logger.Info("clean history file success: ", remotefilePath, errList[0])
+		logger.Info("clean history file success: ", remotefilePath)
 	}
 }
 

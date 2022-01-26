@@ -2,13 +2,14 @@ package database
 
 import (
 	"fmt"
-	"log"
 	"one-backup/archive"
 	"one-backup/config"
 	"one-backup/ftpclient"
 	"one-backup/keygen"
 	"one-backup/ssh"
+	"one-backup/tool"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -33,11 +34,13 @@ type BaseModel struct {
 }
 
 // 清理文件
-func cleanHistoryFile(path, match string, saveNum int) {
+func cleanHistoryFile(match string, ctx BaseModel) {
 	var fileList []string
+	path := ctx.SaveDir
+	saveNum := ctx.BackupNum
 	filepathNames, err := filepath.Glob(filepath.Join(path, match))
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 
 	}
 	for i := range filepathNames {
@@ -49,9 +52,52 @@ func cleanHistoryFile(path, match string, saveNum int) {
 		for _, v := range fileList[0:countNum] {
 			err := os.Remove(v)
 			if err != nil {
-				fmt.Printf("remove %v fail\n", err)
+				logger.Error("clean file fail", err)
 			}
+			filePathList := strings.Split(v, `/`)
+			remotefilePath := ctx.SaveInfo["dstpath"] + filePathList[len(filePathList)-1]
+			cleanRemoteFile(ctx, remotefilePath)
 		}
+	}
+}
+func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
+	errList := []error{}
+	if ctx.SaveInfo["type"] == "sftp" {
+		sftp := new(ssh.ClientConfig)
+		sshPort, _ := strconv.ParseInt(ctx.SaveInfo["port"], 10, 64)
+		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"])
+		if err := sftp.Delete(path.Join(remotefilePath)); err != nil {
+			errList = append(errList, err)
+		}
+
+	} else if ctx.SaveInfo["type"] == "ftp" {
+		ftp := ftpclient.FtpClient{
+			Host:     ctx.SaveInfo["host"],
+			Port:     ctx.SaveInfo["port"],
+			Username: ctx.SaveInfo["username"],
+			Password: ctx.SaveInfo["password"],
+		}
+		if err := ftp.Delete(remotefilePath); err != nil {
+			errList = append(errList, err)
+		}
+	} else if ctx.SaveInfo["type"] == "s3" {
+		s3 := tool.S3{
+			Bucket:            ctx.SaveInfo["bucket"],
+			RemotePath:        ctx.SaveInfo["dstpath"],
+			Region:            ctx.SaveInfo["region"],
+			Access_key_id:     ctx.SaveInfo["access_key_id"],
+			Secret_access_key: ctx.SaveInfo["secret_access_key"],
+			Endpoint:          "",
+		}
+		s3.Open()
+		if err := s3.Delete(remotefilePath); err != nil {
+			errList = append(errList, err)
+		}
+	}
+	if len(errList) > 0 {
+		logger.Error("clean remote file fail: ", remotefilePath, errList[0])
+	} else {
+		logger.Info("clean history file success: ", remotefilePath, errList[0])
 	}
 }
 
@@ -315,31 +361,7 @@ func choiceType(ctx BaseModel) []error {
 	}
 	return errList
 }
-
-// Backup
-func (ctx BaseModel) Backup() {
-	logger.Info("starting backup: ", ctx.DbInfo["name"])
-	errList := choiceType(ctx)
-	if len(errList) != 0 {
-		logger.Error(errList)
-		logger.Error("backup error", ctx.DbInfo["name"])
-		return
-	} else {
-		logger.Info("backup done", ctx.DbInfo["name"])
-	}
-
-	BackupDirName := strings.Split(ctx.BackupDir, `/`)
-	archive.ArchiveTar(
-		true, ctx.SaveDir,
-		BackupDirName[len(BackupDirName)-1],
-		ctx.TarFilename,
-	)
-
-	cleanHistoryFile(
-		ctx.SaveDir,
-		fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]),
-		ctx.BackupNum,
-	)
+func putRemote(ctx BaseModel) {
 	if ctx.SaveInfo["type"] == "sftp" {
 		sftp := new(ssh.ClientConfig)
 		sshPort, _ := strconv.ParseInt(ctx.SaveInfo["port"], 10, 64)
@@ -362,5 +384,45 @@ func (ctx BaseModel) Backup() {
 		} else {
 			logger.Info("put ftp success")
 		}
+	} else if ctx.SaveInfo["type"] == "s3" {
+		s3 := tool.S3{
+			Bucket:            ctx.SaveInfo["bucket"],
+			RemotePath:        ctx.SaveInfo["dstpath"],
+			Region:            ctx.SaveInfo["region"],
+			Access_key_id:     ctx.SaveInfo["access_key_id"],
+			Secret_access_key: ctx.SaveInfo["secret_access_key"],
+			Endpoint:          "",
+		}
+		s3.Open()
+		if err := s3.Upload(ctx.TarFilename, ctx.TarName); err != nil {
+			logger.Info("put S3 fail")
+		} else {
+			logger.Info("put S3 success")
+		}
 	}
+}
+
+// Backup
+func (ctx BaseModel) Backup() {
+	logger.Info("starting backup: ", ctx.DbInfo["name"])
+	errList := choiceType(ctx)
+	if len(errList) != 0 {
+		logger.Error(errList)
+		logger.Error("backup error", ctx.DbInfo["name"])
+		return
+	} else {
+		logger.Info("backup done", ctx.DbInfo["name"])
+	}
+
+	BackupDirName := strings.Split(ctx.BackupDir, `/`)
+	archive.ArchiveTar(
+		true, ctx.SaveDir,
+		BackupDirName[len(BackupDirName)-1],
+		ctx.TarFilename,
+	)
+
+	cleanHistoryFile(
+		fmt.Sprintf("%v-*gz", ctx.DbInfo["name"]), ctx,
+	)
+	putRemote(ctx)
 }

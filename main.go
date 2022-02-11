@@ -45,7 +45,7 @@ func promptInformation() {
 func main() {
 
 	configFile := flag.String("file", "./backupdb.yml", "config file")
-	encrypt := flag.String("encrypt", "", "need encrypt string")
+	encrypt := flag.String("encrypt", "", "Input a string and output an encrypted string")
 	autoEncrypt := flag.String("autoEncrypt", "yes", "yes|no")
 	mode := flag.String("mode", "backup", "run mode: backup|restore")
 	dbType := flag.String("type", "", "database type: redis|mysql|mongodb|etcd|es|postgresql")
@@ -104,6 +104,14 @@ func main() {
 
 		configInfo := config.Init(*autoEncrypt, configFlag, filePath)
 
+		if configInfo.StoreWith["password"] != "" && *autoEncrypt == "yes" {
+			if configInfo.IsEncrypt {
+				configInfo.StoreWith["password"] = keygen.AesDecryptCBC(configInfo.StoreWith["password"], "pass")
+				if configInfo.StoreWith["password"] == "decrypted error" {
+					logger.Error("password decrypted error: storewith")
+				}
+			}
+		}
 		for _, dbInfo := range configInfo.Databases {
 			database.Run(configInfo, dbInfo, *autoEncrypt)
 		}

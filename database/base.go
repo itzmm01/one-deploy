@@ -104,17 +104,15 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 // run
 func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
 	if dbinfo["password"] != "" && autoEncrypt == "yes" {
-		decryptRes := keygen.AesDecryptCBC(dbinfo["password"], "pass")
-		if decryptRes != "base64 error" {
-			dbinfo["password"] = decryptRes
+		if configInfo.IsEncrypt {
+			dbinfo["password"] = keygen.AesDecryptCBC(dbinfo["password"], "pass")
+			if dbinfo["password"] == "decrypted error" {
+				logger.Error("password decrypted error: ", dbinfo["name"])
+				return
+			}
 		}
 	}
-	if configInfo.StoreWith["password"] != "" && autoEncrypt == "yes" {
-		decryptRes := keygen.AesDecryptCBC(configInfo.StoreWith["password"], "pass")
-		if decryptRes != "base64 error" {
-			configInfo.StoreWith["password"] = decryptRes
-		}
-	}
+
 	nowTime := time.Now().Format("2006.01.02.15.04.05")
 	nameDir := fmt.Sprintf("%v-%v", dbinfo["name"], nowTime)
 	base := BaseModel{

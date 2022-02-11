@@ -129,11 +129,7 @@
 ```bash
 # 需要go环境,拉取代码后执行,会输出one-backup-linux-架构.tar.gz文件(目前适配uos-arm,centos-x86)
 ./build.sh
-# 或者直接从cos下载
-# amd64
-wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-amd64.tar.gz
-# arm64
-wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-arm64.tar.gz
+# 或者联系p_chaooyang 提供
 ```
 
 ## 安装使用
@@ -153,7 +149,18 @@ cp example.yml xx.yml
 ./one-backup -file xx.yml
 ```
 
-## 备份选项
+## 基础配置
+
+```yaml
+# 保留备份文件数量
+backupnum: 5
+# 压缩选项
+compresstype: tgz
+# 配置文件中的密码是否已加密 true/false(默认false)
+isencrypt: false
+```
+
+## 存储配置
 
 ### 本地存储
 

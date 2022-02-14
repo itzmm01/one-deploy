@@ -162,7 +162,8 @@ func Init(execPath string, argsMap map[string]*string) {
 			// etcd-cluster
 			"etcdCluster": *argsMap["etcdCluster"], "etcdCluserToken": *argsMap["etcdCluserToken"],
 			// etcd-remote host
-			"sshhost": *argsMap["sshhost"], "sshport": *argsMap["sshport"], "sshuser": *argsMap["sshuser"], "sshpassword": *argsMap["sshpassword"],
+			"sshhost": *argsMap["sshhost"], "sshport": *argsMap["sshport"],
+			"sshuser": *argsMap["sshuser"], "sshpassword": *argsMap["sshpassword"],
 			// etcd-docker info
 			"dockername": *argsMap["dockername"], "dockernetwork": *argsMap["dockernetwork"],
 		}

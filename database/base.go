@@ -93,6 +93,18 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 		if err := s3.Delete(remotefilePath); err != nil {
 			errList = append(errList, err)
 		}
+	} else if ctx.SaveInfo["type"] == "minio" {
+		minio := tool.Minio{
+			Bucket:          ctx.SaveInfo["bucket"],
+			RemotePath:      ctx.SaveInfo["dstpath"],
+			Region:          ctx.SaveInfo["region"],
+			Accesskeyid:     ctx.SaveInfo["access_key_id"],
+			Secretaccesskey: ctx.SaveInfo["secret_access_key"],
+			Endpoint:        ctx.SaveInfo["host"],
+		}
+		if err := minio.Delete(remotefilePath); err != nil {
+			errList = append(errList, err)
+		}
 	}
 	if len(errList) > 0 {
 		logger.Error("clean remote file fail: ", remotefilePath, errList[0])
@@ -397,6 +409,22 @@ func putRemote(ctx BaseModel) {
 		} else {
 			logger.Info("put S3 success")
 		}
+	} else if ctx.SaveInfo["type"] == "minio" {
+		minio := tool.Minio{
+			Bucket:          ctx.SaveInfo["bucket"],
+			RemotePath:      ctx.SaveInfo["dstpath"],
+			Region:          ctx.SaveInfo["region"],
+			Accesskeyid:     ctx.SaveInfo["access_key_id"],
+			Secretaccesskey: ctx.SaveInfo["secret_access_key"],
+			Endpoint:        ctx.SaveInfo["host"],
+		}
+		if err := minio.Upload(ctx.TarFilename, ctx.TarName); err != nil {
+			logger.Info("put minio fail", err)
+		} else {
+			logger.Info("put minio success")
+		}
+	} else {
+		logger.Warn("no support ", ctx.SaveInfo["type"])
 	}
 }
 

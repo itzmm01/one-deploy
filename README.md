@@ -215,6 +215,50 @@ storewith:
   dstpath: /root/
 ```
 
+### S3
+
+```yaml
+#存储选项
+storewith:
+  # 类型
+  type: s3
+  # 本地保存路径
+  path: /tmp/backupdir
+  # 添加自己的存储桶名
+  bucket: test1
+  # 添加自己的s3保存路径
+  dstpath: /
+  # 添加自己的AWS 区域
+  region: ap-northeast-2
+  # 添加自己的账号access_key_id
+  access_key_id: xxx
+  # 添加自己的账号secret_access_key
+  secret_access_key: xxx
+```
+
+### minio
+
+```yaml
+#存储选项
+storewith:
+  # 类型
+  type: minio
+  # 本地保存路径
+  path: /tmp/backupdir
+  # minio主机端口
+  host: 192.168.134.164:9000
+  # 存储桶名
+  bucket: test1
+  # 保存路径
+  dstpath: /
+  # 区域
+  region: ap-northeast-2
+  # 账号access_key_id
+  access_key_id: xxx
+  # 账号secret_access_key
+  secret_access_key: xxx
+```
+
 
 
 ## mysql

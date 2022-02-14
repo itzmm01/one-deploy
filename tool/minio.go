@@ -4,6 +4,7 @@ import (
 	"github.com/minio/minio-go/v6"
 )
 
+// Minio
 type Minio struct {
 	Bucket          string
 	RemotePath      string
@@ -14,6 +15,7 @@ type Minio struct {
 	UseSSL          bool
 }
 
+// upload
 func (ctx Minio) Upload(srcFile, fileKey string) (err error) {
 	useSSL := false
 	minioClient, err := minio.New(ctx.Endpoint, ctx.Accesskeyid, ctx.Secretaccesskey, useSSL)
@@ -38,11 +40,15 @@ func (ctx Minio) Upload(srcFile, fileKey string) (err error) {
 	contentType := "application/gzip"
 
 	// 使用FPutObject上传一个zip文件。
-	if _, err1 := minioClient.FPutObject(ctx.Bucket, objectName, filePath, minio.PutObjectOptions{ContentType: contentType}); err != nil {
+	if _, err1 := minioClient.FPutObject(
+		ctx.Bucket, objectName, filePath, minio.PutObjectOptions{ContentType: contentType},
+	); err != nil {
 		return err1
 	}
 	return
 }
+
+// delete
 func (ctx Minio) Delete(srcFile string) (err error) {
 	useSSL := false
 	minioClient, err := minio.New(ctx.Endpoint, ctx.Accesskeyid, ctx.Secretaccesskey, useSSL)

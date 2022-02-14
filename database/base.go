@@ -113,6 +113,63 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 	}
 }
 
+// init
+func Init(execPath string, argsMap map[string]*string) {
+	if *argsMap["mode"] == "backup" {
+		if _, err := os.Lstat(*argsMap["configfile"]); err != nil {
+			logger.Error(*argsMap["configfile"], " not found!")
+			os.Exit(1)
+		}
+
+		absPath, _ := filepath.Abs(*argsMap["configfile"])
+		absPath_format := strings.Replace(absPath, "\\", "/", -1)
+
+		pathStrList := strings.Split(absPath_format, `/`)
+		fileName := pathStrList[len(pathStrList)-1]
+
+		filePath := strings.Replace(absPath_format, fileName, "", -1)
+		configFlag := strings.Replace(fileName, ".yml", "", -1)
+
+		configInfo := config.Init(*argsMap["autoencrypt"], configFlag, filePath)
+
+		if configInfo.StoreWith["password"] != "" && *argsMap["autoencrypt"] == "yes" {
+			if configInfo.IsEncrypt {
+				configInfo.StoreWith["password"] = keygen.AesDecryptCBC(configInfo.StoreWith["password"], "pass")
+				if configInfo.StoreWith["password"] == "decrypted error" {
+					logger.Error("password decrypted error: storewith")
+				}
+			}
+		}
+		for _, dbInfo := range configInfo.Databases {
+			Run(configInfo, dbInfo, *argsMap["autoencrypt"])
+		}
+	} else if *argsMap["mode"] == "restore" {
+		base := BaseModel{}
+		base.DbInfo = map[string]string{
+			"execpath": execPath,
+			"dbType":   *argsMap["dbtype"],
+			"host":     *argsMap["dbhost"],
+			"port":     *argsMap["dbport"],
+			"username": *argsMap["dbusername"],
+			"password": *argsMap["dbpassword"],
+			"db":       *argsMap["db"],
+			"src":      *argsMap["src"],
+			"authdb":   *argsMap["authdb"],
+			// etcd https
+			"https": *argsMap["https"], "cacert": *argsMap["cacert"], "cert": *argsMap["cert"], "key": *argsMap["certkey"],
+			// etcd-info
+			"etcddatadir": *argsMap["etcddatadir"], "etcdName": *argsMap["etcdName"], "etcdservice": *argsMap["etcdservice"],
+			// etcd-cluster
+			"etcdCluster": *argsMap["etcdCluster"], "etcdCluserToken": *argsMap["etcdCluserToken"],
+			// etcd-remote host
+			"sshhost": *argsMap["sshhost"], "sshport": *argsMap["sshport"], "sshuser": *argsMap["sshuser"], "sshpassword": *argsMap["sshpassword"],
+			// etcd-docker info
+			"dockername": *argsMap["dockername"], "dockernetwork": *argsMap["dockernetwork"],
+		}
+		Restore(base)
+	}
+}
+
 // run
 func Run(configInfo config.ModelConfig, dbinfo map[string]string, autoEncrypt string) {
 	if dbinfo["password"] != "" && autoEncrypt == "yes" {

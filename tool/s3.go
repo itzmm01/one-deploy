@@ -13,15 +13,6 @@ import (
 )
 
 // S3 - Amazon S3 storage
-//
-// type: s3
-// bucket: gobackup-test
-// region: us-east-1
-// path: backups
-// access_key_id: your-access-key-id
-// secret_access_key: your-secret-access-key
-// max_retries: 5
-// timeout: 300
 type S3 struct {
 	Bucket            string
 	RemotePath        string
@@ -32,6 +23,7 @@ type S3 struct {
 	Client            *s3manager.Uploader
 }
 
+// open connect
 func (ctx *S3) Open() (err error) {
 
 	sess, _ := session.NewSession(&aws.Config{
@@ -42,8 +34,10 @@ func (ctx *S3) Open() (err error) {
 	return
 }
 
+// close
 func (ctx *S3) Close() {}
 
+// upload
 func (ctx *S3) Upload(srcFile, fileKey string) (err error) {
 	f, err := os.Open(srcFile)
 	if err != nil {
@@ -63,6 +57,7 @@ func (ctx *S3) Upload(srcFile, fileKey string) (err error) {
 	return nil
 }
 
+// delete
 func (ctx *S3) Delete(remotePath string) (err error) {
 	input := &s3.DeleteObjectInput{
 		Bucket: aws.String(ctx.Bucket),

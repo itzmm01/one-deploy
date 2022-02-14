@@ -166,6 +166,7 @@ func (cliConf *ClientConfig) DownloadDirectory(srcPath, dstPath string) error {
 	return nil
 }
 
+// delete remote file
 func (cliConf *ClientConfig) Delete(filePath string) error {
 	return cliConf.sftpClient.Remove(filePath)
 }

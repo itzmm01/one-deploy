@@ -56,13 +56,13 @@ func AesDecryptCBC(encrypted, model string) (decryptedStr string) {
 	blockMode := cipher.NewCBCDecrypter(block, []byte(rootIV)) // 加密模式
 	encryptedBytes, err := base64.StdEncoding.DecodeString(encrypted)
 	if err != nil {
-		return "base64 error"
+		return "decrypted error"
 	}
 
 	decrypted := make([]byte, len(encryptedBytes)) // 创建数组
 	defer func() {
 		if err := recover(); err != nil {
-			decryptedStr = "base64 error"
+			decryptedStr = "decrypted error"
 		}
 	}()
 	blockMode.CryptBlocks(decrypted, encryptedBytes) // 解密

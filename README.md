@@ -25,26 +25,28 @@
 
 
 ```bash
+# 工具运行模式,备份或者恢复，默认是备份
+  -mode string
+    	run mode: backup|restore (default "backup")
 # 是否自动加密密码,默认加密
   -autoEncrypt string
     	yes|no (default "yes")
 # 指定需要加密的字符串,输出加密后的字符串
   -encrypt string
     	need encrypt string
-# 工具运行模式,备份或者恢复，默认是恢复
-  -mode string
-    	run mode: backup|restore (default "backup")
-#---------备份时使用参数
-# 指定配置文件
+
+# ----------------------备份相关--------------------
+# 配置文件
   -file string
     	config file (default "./backupdb.yml")
-    	
-#---------恢复时使用参数
+# ------------------------------------------------
+
+# ----------------------恢复相关--------------------
 
 # 数据库类型
   -type string
-    	database type: redis|mysql|mongodb|etcd|es|postgresql    	
-# 数据库IP
+    	database type: redis|mysql|mongodb|etcd|es|postgresql
+# 数据库主机
   -host string
     	database host: x.x.x.x
 # 数据库端口
@@ -52,32 +54,71 @@
     	database port: 6379
 # 数据库用户
   -username string
-    	database username: root
+    	database username (default "root")
 # 数据库密码
   -password string
     	database password: xxx
-# 数据库名称
+# 指定数据库名
   -db string
     	database: 0 (default "0")
-# 恢复来源文件
+# 数据库恢复源文件
   -src string
-    	restore dir/file:  such '/tmp/backupdir/redis/dump.json' 
-  
-#----------mongodb
-  -authdb string
-        mongo authdb: admin (default "admin")
-#----------etcd
-  -Key string
-        etcd key (default "/etc/kubernetes/pki/etcd/server.key")
-  -cacert string
-        etcd cacert (default "/etc/kubernetes/pki/etcd/ca.crt")
-  -cert string
-        etcd cert (default "/etc/kubernetes/pki/etcd/server.crt")
-  -datadir string
-        etcd data-dir (default "/var/lib/etcd")
-  -https string
-        etcd https (default "no")
+    	restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'    	
 
+# ----------------------mongodb--------------------
+# authdb
+  -authdb string
+    	mongo authdb: admin (default "admin")
+   	
+#----------------------etcd--------------------    	
+# 是否使用https
+  -https string
+    	etcd https (default "no")
+# etcd证书
+  -etcdcacert string
+    	etcd cacert (default "/etc/kubernetes/pki/etcd/ca.crt")
+# etcd证书
+  -etcdcert string
+    	etcd cert (default "/etc/kubernetes/pki/etcd/server.crt")
+# etcd集群连接信息
+  -etcdcluster string
+    	etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379
+# etcd集群token
+  -etcdclustertoken string
+    	etcdclustertoken: 
+# etcd数据目录
+  -etcddatadir string
+    	etcd data-dir: /var/lib/etcd (default "/var/lib/etcd")
+# etcd证书
+  -etcdkey string
+    	etcd key (default "/etc/kubernetes/pki/etcd/server.key")
+# etcd集群名称
+  -etcdname string
+    	etcdname: etcd1 (default "etcd1")
+# etcd服务名称,systemctl
+  -etcdservice string
+    	etcdservice : etcd.service (default "etcd")
+# docker名称
+  -dockername string
+    	dockername: etcd1
+# docker网络模式
+  -dockernetwork string
+    	dockernetwork: host|nat (default "host")
+
+# ----------------------远程主机备份--------------------  
+# 需要将工具拷贝到远程主机执行时指定
+# 远程主机IP
+  -sshhost string
+    	sshhost: 192.168.12.1
+# 远程主机密码
+  -sshpassword string
+    	sshpassword: root
+# 远程主机端口
+  -sshport string
+    	sshport: 22 (default "22")
+# 远程主机用户
+  -sshuser string
+    	sshuser: root (default "root")
 
 ```
 
@@ -88,11 +129,7 @@
 ```bash
 # 需要go环境,拉取代码后执行,会输出one-backup-linux-架构.tar.gz文件(目前适配uos-arm,centos-x86)
 ./build.sh
-# 或者直接从cos下载
-# amd64
-wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-amd64.tar.gz
-# arm64
-wget https://tencent-cloud-product-release-1258877907.cos.ap-guangzhou.myqcloud.com/commons/one-backup-linux-arm64.tar.gz
+# 或者联系p_chaooyang 提供
 ```
 
 ## 安装使用
@@ -112,15 +149,26 @@ cp example.yml xx.yml
 ./one-backup -file xx.yml
 ```
 
-## 备份选项
+## 基础配置
+
+```yaml
+# 保留备份文件数量
+backupnum: 5
+# 压缩选项
+compresstype: tgz
+# 配置文件中的密码是否已加密 true/false(默认false)
+isencrypt: false
+```
+
+## 存储配置
 
 ### 本地存储
 
 ```yaml
 #存储选项
 storewith:
-  # 类型
-  type: local
+  # 类型(暂时支持本地存储和sftp)
+  type: sftp
   # 本地保存路径
   path: /tmp/backupdir
 ```
@@ -130,18 +178,18 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型
+  # 类型(暂时支持本地存储和sftp)
   type: sftp
   # 本地保存路径
   path: /tmp/backupdir
-  # 添加自己的sftp远端主机
+  # 远端主机
   host: 192.168.146.134
-  # 添加自己的sftp端口
+  # 端口
   port: "22"
-  # 添加自己的sftp用户名
+  # 用户名
   username: root
-  # 添加自己的sftp密码
-  password: xxx
+  # 密码
+  password: BhaBUTSg3lMXHLVUkHmOfw==
   # 远端存储路径
   dstpath: /root/
 ```
@@ -151,23 +199,23 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型
+  # 类型(暂时支持本地存储和sftp)
   type: ftp
   # 本地保存路径
   path: /tmp/backupdir
-  # 添加自己的ftp服务器
+  # 远端主机
   host: 192.168.146.134
-  # 添加自己的ftp端口
+  # 端口
   port: "21"
-  # 添加自己的ftp用户名
+  # 用户名
   username: ftp
-  # 添加自己的ftp密码
+  # 密码
   password: BhaBUTSg3lMXHLVUkHmOfw==
-  # 添加自己的ftp存储路径
+  # 远端存储路径
   dstpath: /root/
 ```
 
-## S3
+### S3
 
 ```yaml
 #存储选项
@@ -185,6 +233,29 @@ storewith:
   # 添加自己的账号access_key_id
   access_key_id: xxx
   # 添加自己的账号secret_access_key
+  secret_access_key: xxx
+```
+
+### minio
+
+```yaml
+#存储选项
+storewith:
+  # 类型
+  type: minio
+  # 本地保存路径
+  path: /tmp/backupdir
+  # minio主机端口
+  host: 192.168.134.164:9000
+  # 存储桶名
+  bucket: test1
+  # 保存路径
+  dstpath: /
+  # 区域
+  region: ap-northeast-2
+  # 账号access_key_id
+  access_key_id: xxx
+  # 账号secret_access_key
   secret_access_key: xxx
 ```
 

@@ -4,7 +4,7 @@ backupnum: 5
 compresstype: tgz
 # 存储选项
 storewith:
-  # 类型(暂时支持本地存储)
+  # 类型(支持本地存储/ftp/sftp/s3/minio) 具体配置见redme
   type: local
   # 路径
   path: /tmp/backupdir
@@ -13,6 +13,8 @@ storewith:
   username: root
   password: xxxx
   dstpath: /root/
+# 配置文件中的密码是否已加密 true/false(默认false)
+isencrypt: false
 databases:
     # 备份任务名
   - name: postgresql

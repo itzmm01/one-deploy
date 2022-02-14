@@ -43,39 +43,42 @@ func promptInformation() {
 }
 
 func main() {
+	argsMap := map[string]*string{}
 
-	configFile := flag.String("file", "./backupdb.yml", "config file")
-	encrypt := flag.String("encrypt", "", "need encrypt string")
-	autoEncrypt := flag.String("autoEncrypt", "yes", "yes|no")
-	mode := flag.String("mode", "backup", "run mode: backup|restore")
-	dbType := flag.String("type", "", "database type: redis|mysql|mongodb|etcd|es|postgresql")
-	host := flag.String("host", "", "database host: x.x.x.x")
-	port := flag.String("port", "", "database port: 6379")
-	db := flag.String("db", "0", "database: 0")
-	username := flag.String("username", "root", "database username")
-	password := flag.String("password", "", "database password: xxx")
-	authdb := flag.String("authdb", "admin", "mongo authdb: admin")
-	https := flag.String("https", "no", "etcd https")
-	cacert := flag.String("cacert", "/etc/kubernetes/pki/etcd/ca.crt", "etcd cacert")
-	cert := flag.String("cert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
-	certkey := flag.String("Key", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
-	etcdservice := flag.String("var ", "etcd", "var : etcd.service")
-	etcddatadir := flag.String("datadir", "/var/lib/etcd", "etcd data-dir: /var/lib/etcd")
-	etcdname := flag.String("etcdname", "etcd1", "etcdname: etcd1")
-	etcdcluster := flag.String("etcdcluster", "", "etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379")
-	etcdclustertoken := flag.String("etcdclustertoken", "", "etcdclustertoken: ")
-	dockername := flag.String("dockername", "", "dockername: etcd1")
-	dockernetwork := flag.String("dockernetwork", "host", "dockernetwork: host|nat")
-	sshhost := flag.String("sshhost", "", "sshhost: 192.168.12.1")
-	sshport := flag.String("sshport", "22", "sshport: 22")
-	sshuser := flag.String("sshuser", "root", "sshuser: root")
-	sshpassword := flag.String("sshpassword", "", "sshpassword: root")
-	src := flag.String("src", "", "restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'")
+	argsMap["configfile"] = flag.String("file", "./backupdb.yml", "config file")
+	argsMap["encrypt"] = flag.String("encrypt", "", "Input a string and output an encrypted string")
+	argsMap["autoencrypt"] = flag.String("autoEncrypt", "yes", "yes|no")
+	argsMap["mode"] = flag.String("mode", "backup", "run mode: backup|restore")
+	argsMap["dbtype"] = flag.String("type", "", "database type: redis|mysql|mongodb|etcd|es|postgresql")
+	argsMap["dbhost"] = flag.String("host", "", "database host: x.x.x.x")
+	argsMap["dbport"] = flag.String("port", "", "database port: 6379")
+	argsMap["db"] = flag.String("db", "0", "database: 0")
+	argsMap["dbusername"] = flag.String("username", "root", "database username")
+	argsMap["dbpassword"] = flag.String("password", "", "database password: xxx")
+	argsMap["authdb"] = flag.String("authdb", "admin", "mongo authdb: admin")
+	argsMap["https"] = flag.String("https", "no", "etcd https")
+	argsMap["cacert"] = flag.String("etcdcacert", "/etc/kubernetes/pki/etcd/ca.crt", "etcd cacert")
+	argsMap["cert"] = flag.String("etcdcert", "/etc/kubernetes/pki/etcd/server.crt", "etcd cert")
+	argsMap["certkey"] = flag.String("etcdkey", "/etc/kubernetes/pki/etcd/server.key", "etcd key")
+	argsMap["etcdservice"] = flag.String("etcdservice", "etcd", "etcdservice : etcd.service")
+	argsMap["etcddatadir"] = flag.String("etcddatadir", "/var/lib/etcd", "etcd data-dir: /var/lib/etcd")
+	argsMap["etcdname"] = flag.String("etcdname", "etcd1", "etcdname: etcd1")
+	argsMap["etcdcluster"] = flag.String(
+		"etcdcluster", "", "etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379",
+	)
+	argsMap["etcdclustertoken"] = flag.String("etcdclustertoken", "", "etcdclustertoken: ")
+	argsMap["dockername"] = flag.String("dockername", "", "dockername: etcd1")
+	argsMap["dockernetwork"] = flag.String("dockernetwork", "host", "dockernetwork: host|nat")
+	argsMap["sshhost"] = flag.String("sshhost", "", "sshhost: 192.168.12.1")
+	argsMap["sshport"] = flag.String("sshport", "22", "sshport: 22")
+	argsMap["sshuser"] = flag.String("sshuser", "root", "sshuser: root")
+	argsMap["sshpassword"] = flag.String("sshpassword", "", "sshpassword: root")
+	argsMap["src"] = flag.String("src", "", "restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'")
 
 	flag.Parse()
 
-	if *encrypt != "" {
-		logger.Info(keygen.AesEncryptCBC(*encrypt, "pass"))
+	if *argsMap["encrypt"] != "" {
+		logger.Info(keygen.AesEncryptCBC(*argsMap["encrypt"], "pass"))
 		os.Exit(0)
 	}
 
@@ -85,52 +88,6 @@ func main() {
 	execFileTmp1 := strings.Split(execFile, `/`)
 	execPath := strings.Join(execFileTmp1[0:len(execFileTmp1)-1], `/`)
 	setPath(execPath)
-
-	if *mode == "backup" {
-		if _, err := os.Lstat(*configFile); err != nil {
-			logger.Error(*configFile, " not found!")
-			flag.PrintDefaults()
-			os.Exit(1)
-		}
-
-		absPath, _ := filepath.Abs(*configFile)
-		absPath_format := strings.Replace(absPath, "\\", "/", -1)
-
-		pathStrList := strings.Split(absPath_format, `/`)
-		fileName := pathStrList[len(pathStrList)-1]
-
-		filePath := strings.Replace(absPath_format, fileName, "", -1)
-		configFlag := strings.Replace(fileName, ".yml", "", -1)
-
-		configInfo := config.Init(*autoEncrypt, configFlag, filePath)
-
-		for _, dbInfo := range configInfo.Databases {
-			database.Run(configInfo, dbInfo, *autoEncrypt)
-		}
-	} else if *mode == "restore" {
-		base := database.BaseModel{}
-		base.DbInfo = map[string]string{
-			"execpath": execPath,
-			"dbType":   *dbType,
-			"host":     *host,
-			"port":     *port,
-			"username": *username,
-			"password": *password,
-			"db":       *db,
-			"src":      *src,
-			"authdb":   *authdb,
-			// etcd https
-			"https": *https, "cacert": *cacert, "cert": *cert, "key": *certkey,
-			// etcd-info
-			"etcddatadir": *etcddatadir, "etcdName": *etcdname, "etcdservice": *etcdservice,
-			// etcd-cluster
-			"etcdCluster": *etcdcluster, "etcdCluserToken": *etcdclustertoken,
-			// etcd-remote host
-			"sshhost": *sshhost, "sshport": *sshport, "sshuser": *sshuser, "sshpassword": *sshpassword,
-			// etcd-docker info
-			"dockername": *dockername, "dockernetwork": *dockernetwork,
-		}
-		database.Restore(base)
-	}
+	database.Init(execPath, argsMap)
 
 }

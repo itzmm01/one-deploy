@@ -19,6 +19,7 @@ type ModelConfig struct {
 	BackupNum    int
 	Databases    []map[string]string
 	Viper        *viper.Viper
+	IsEncrypt    bool
 }
 
 // SubConfig sub config info
@@ -28,29 +29,17 @@ type SubConfig struct {
 	Viper *viper.Viper
 }
 
-func passBase(autoEncrypt, pass string) string {
+func passBase(autoEncrypt, pass string, isEncrypt bool) string {
 	if autoEncrypt == "no" {
 		return pass
 	}
-
-	passStr := keygen.AesDecryptCBC(strings.Replace(pass, " ", "", -1), "pass")
-	if passStr == "base64 error" {
-		return keygen.AesEncryptCBC(strings.Replace(pass, " ", "", -1), "pass")
-	} else {
+	if isEncrypt {
 		return pass
 	}
-
-}
-func intToString(val interface{}) string {
-	switch val.(type) {
-	case int:
-		return strconv.Itoa(val.(int))
-	default:
-		return strings.Replace(val.(string), " ", "", -1)
-	}
+	return keygen.AesEncryptCBC(pass, "pass")
 }
 
-func interfaceTomap(inter interface{}, autoEncrypt string) map[string]string {
+func interfaceTomap(inter interface{}, autoEncrypt string, isEncrypt bool) map[string]string {
 	tmp1 := map[string]string{}
 	switch inter.(type) {
 	case map[interface{}]interface{}:
@@ -68,7 +57,7 @@ func interfaceTomap(inter interface{}, autoEncrypt string) map[string]string {
 	}
 	for k, v := range tmp1 {
 		if k == "password" {
-			tmp1["password"] = passBase(autoEncrypt, v)
+			tmp1["password"] = passBase(autoEncrypt, v, isEncrypt)
 			continue
 		}
 	}
@@ -90,13 +79,13 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		logger.Error("config file: storewith|compresstype|backupnum error")
 		os.Exit(1)
 	}
-
+	config.IsEncrypt = viper.Get("isencrypt").(bool)
 	switch viper.Get("storewith").(type) {
 	case map[string]string:
 		tmp1 := map[string]string{}
 		for k, v := range viper.Get("storewith").(map[string]string) {
 			if k == "password" {
-				tmp1["password"] = passBase(autoEncrypt, v)
+				tmp1["password"] = passBase(autoEncrypt, v, config.IsEncrypt)
 				continue
 			}
 			tmp1[k] = v
@@ -106,7 +95,7 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		tmp1 := map[string]string{}
 		for k, v := range viper.Get("storewith").(map[string]interface{}) {
 			if k == "password" {
-				tmp1["password"] = passBase(autoEncrypt, v.(string))
+				tmp1["password"] = passBase(autoEncrypt, v.(string), config.IsEncrypt)
 				continue
 			}
 			switch v.(type) {
@@ -131,7 +120,7 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 	case []interface{}:
 		databasesList := viper.Get("databases").([]interface{})
 		for _, database := range databasesList {
-			config.Databases = append(config.Databases, interfaceTomap(database, autoEncrypt))
+			config.Databases = append(config.Databases, interfaceTomap(database, autoEncrypt, config.IsEncrypt))
 		}
 	case []map[string]string:
 		databasesList := viper.Get("databases").([]map[string]string)
@@ -139,7 +128,7 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		for _, database := range databasesList {
 			for k, v := range database {
 				if k == "password" {
-					tmp1["password"] = passBase(autoEncrypt, v)
+					tmp1["password"] = passBase(autoEncrypt, v, config.IsEncrypt)
 					continue
 				}
 			}
@@ -149,7 +138,10 @@ func Init(autoEncrypt, filename, filepath string) ModelConfig {
 		logger.Error("config file: databases error")
 		os.Exit(1)
 	}
+
+	config.IsEncrypt = true
 	viper.Set("databases", config.Databases)
+	viper.Set("isencrypt", config.IsEncrypt)
 	viper.WriteConfigAs(filepath + "/" + filename + ".yml")
 	return config
 }

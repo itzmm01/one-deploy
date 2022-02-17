@@ -481,6 +481,8 @@ func putRemote(ctx BaseModel) {
 		} else {
 			logger.Info("put minio success")
 		}
+	} else if ctx.SaveInfo["type"] == "local" {
+
 	} else {
 		logger.Warn("no support ", ctx.SaveInfo["type"])
 	}

@@ -105,6 +105,18 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 		if err := minio.Delete(remotefilePath); err != nil {
 			errList = append(errList, err)
 		}
+	} else if ctx.SaveInfo["type"] == "cos" {
+		cos := tool.Cos{
+			Bucket:          ctx.SaveInfo["bucket"],
+			RemotePath:      ctx.SaveInfo["dstpath"],
+			Region:          ctx.SaveInfo["region"],
+			Accesskeyid:     ctx.SaveInfo["access_key_id"],
+			Secretaccesskey: ctx.SaveInfo["secret_access_key"],
+			Endpoint:        ctx.SaveInfo["host"],
+		}
+		if err := cos.Delete(remotefilePath); err != nil {
+			errList = append(errList, err)
+		}
 	}
 	if len(errList) > 0 {
 		logger.Error("clean remote file fail: ", remotefilePath, errList[0])
@@ -481,6 +493,21 @@ func putRemote(ctx BaseModel) {
 		} else {
 			logger.Info("put minio success")
 		}
+	} else if ctx.SaveInfo["type"] == "cos" {
+		cos := tool.Cos{
+			Bucket:          ctx.SaveInfo["bucket"],
+			RemotePath:      ctx.SaveInfo["dstpath"],
+			Region:          ctx.SaveInfo["region"],
+			Accesskeyid:     ctx.SaveInfo["access_key_id"],
+			Secretaccesskey: ctx.SaveInfo["secret_access_key"],
+			Endpoint:        ctx.SaveInfo["host"],
+		}
+		if err := cos.Upload(ctx.TarFilename, ctx.TarName); err != nil {
+			logger.Info("put cos fail", err)
+		} else {
+			logger.Info("put cos success")
+		}
+
 	} else if ctx.SaveInfo["type"] == "local" {
 
 	} else {

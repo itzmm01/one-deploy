@@ -259,6 +259,29 @@ storewith:
   secret_access_key: xxx
 ```
 
+### cos
+
+```yaml
+#存储选项
+storewith:
+  # 类型
+  type: cos
+  # 本地保存路径
+  path: /tmp/backupdir
+  # minio主机端口
+  host: https://image-1252346960.cos.ap-chengdu.myqcloud.com
+  # 存储桶名
+  bucket: image-1252346960
+  # 保存路径
+  dstpath: /
+  # 区域
+  region: ap-chengdu
+  # 账号access_key_id
+  access_key_id: xxx
+  # 账号secret_access_key
+  secret_access_key: xxx
+```
+
 
 
 ## mysql

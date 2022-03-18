@@ -706,6 +706,8 @@ databases:
     port: "22"
     # ssh 账号
     username: "root"
+    # 密钥文件地址
+    keyfile: "xxx"
     # ssh密码
     password: "xxxx"
 ```

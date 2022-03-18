@@ -22,13 +22,27 @@ type ClientConfig struct {
 	Port       int64        // 端口
 	Username   string       //用户名
 	Password   string       //密码
+	KeyFile    string       //密钥文件
 	sshClient  *ssh.Client  //ssh client
 	sftpClient *sftp.Client //sftp client
 	LastResult string       //最近一次运行的结果
 }
 
+func publicKeyAuthFunc(keyPath string) ssh.AuthMethod {
+	key, err := ioutil.ReadFile(keyPath)
+	if err != nil {
+		logger.Error("Failed to read ssh key file:", err)
+	}
+	// Create the Signer for this private key.
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		logger.Error("Failed to signature ssh key file: ", err)
+	}
+	return ssh.PublicKeys(signer)
+}
+
 // CreateClient
-func (cliConf *ClientConfig) CreateClient(host string, port int64, username, password string) {
+func (cliConf *ClientConfig) CreateClient(host string, port int64, username, password, keyfile string) {
 	var (
 		sshClient  *ssh.Client
 		sftpClient *sftp.Client
@@ -42,11 +56,15 @@ func (cliConf *ClientConfig) CreateClient(host string, port int64, username, pas
 
 	config := ssh.ClientConfig{
 		User: cliConf.Username,
-		Auth: []ssh.AuthMethod{ssh.Password(password)},
 		HostKeyCallback: func(hostname string, remote net.Addr, key ssh.PublicKey) error {
 			return nil
 		},
 		Timeout: 10 * time.Second,
+	}
+	if keyfile == "" {
+		config.Auth = []ssh.AuthMethod{ssh.Password(password)}
+	} else {
+		config.Auth = []ssh.AuthMethod{publicKeyAuthFunc(keyfile)}
 	}
 	addr := fmt.Sprintf("%s:%d", cliConf.Host, cliConf.Port)
 

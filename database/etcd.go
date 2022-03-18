@@ -116,7 +116,7 @@ func getDockerCmdStr(dockerName, execPath, srcFilePath, cmdStr string, other map
 func getSSH(other map[string]string) *ssh.ClientConfig {
 	sshClient := new(ssh.ClientConfig)
 	sshPort, _ := strconv.ParseInt(other["sshport"], 10, 64)
-	sshClient.CreateClient(other["sshhost"], sshPort, other["sshuser"], other["sshpassword"])
+	sshClient.CreateClient(other["sshhost"], sshPort, other["sshuser"], other["sshpassword"], other["keyfile"])
 	return sshClient
 }
 

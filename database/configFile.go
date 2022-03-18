@@ -26,6 +26,7 @@ type File struct {
 	Username string
 	// 密码
 	Password string
+	KeyFile  string
 	// 路径
 	Path string
 }
@@ -39,7 +40,7 @@ func (ctx File) Backup() error {
 	} else {
 		cliConf := new(ssh.ClientConfig)
 		sshPort, _ := strconv.ParseInt(ctx.Port, 10, 64)
-		cliConf.CreateClient(ctx.Host, sshPort, ctx.Username, ctx.Password)
+		cliConf.CreateClient(ctx.Host, sshPort, ctx.Username, ctx.Password, ctx.KeyFile)
 		pathStrList := strings.Split(ctx.Path, `/`)
 		fileName := pathStrList[len(pathStrList)-1]
 		if fileName == "" {

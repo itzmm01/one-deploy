@@ -65,7 +65,7 @@ func cleanRemoteFile(ctx BaseModel, remotefilePath string) {
 	if ctx.SaveInfo["type"] == "sftp" {
 		sftp := new(ssh.ClientConfig)
 		sshPort, _ := strconv.ParseInt(ctx.SaveInfo["port"], 10, 64)
-		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"])
+		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"], ctx.SaveInfo["keyfile"])
 		if err := sftp.Delete(path.Join(remotefilePath)); err != nil {
 			errList = append(errList, err)
 		}
@@ -382,6 +382,7 @@ func fileObj(ctx BaseModel) File {
 		Port:        ctx.DbInfo["port"],
 		Username:    ctx.DbInfo["username"],
 		Password:    ctx.DbInfo["password"],
+		KeyFile:     ctx.DbInfo["keyfile"],
 		Path:        ctx.DbInfo["path"],
 	}
 }
@@ -445,7 +446,7 @@ func putRemote(ctx BaseModel) {
 	if ctx.SaveInfo["type"] == "sftp" {
 		sftp := new(ssh.ClientConfig)
 		sshPort, _ := strconv.ParseInt(ctx.SaveInfo["port"], 10, 64)
-		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"])
+		sftp.CreateClient(ctx.SaveInfo["host"], sshPort, ctx.SaveInfo["username"], ctx.SaveInfo["password"], ctx.SaveInfo["keyfile"])
 		if err := sftp.Upload(ctx.TarFilename, fmt.Sprintf("%v/%v", ctx.SaveInfo["dstpath"], ctx.TarName)); err != nil {
 			logger.Info("put sftp fail")
 		} else {

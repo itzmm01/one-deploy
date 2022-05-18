@@ -63,14 +63,14 @@
     	database: 0 (default "0")
 # 数据库恢复源文件
   -src string
-    	restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'    	
+    	restore file/dir:  such './dump.json or ./mongodb-2021.12.27.01.35.24/'
 
 # ----------------------mongodb--------------------
 # authdb
   -authdb string
     	mongo authdb: admin (default "admin")
-   	
-#----------------------etcd--------------------    	
+
+#----------------------etcd--------------------
 # 是否使用https
   -https string
     	etcd https (default "no")
@@ -85,7 +85,7 @@
     	etcdcluster: etcd1=etcd1:2379,etcd2=etcd2:2379,etcd3=etcd3:2379
 # etcd集群token
   -etcdclustertoken string
-    	etcdclustertoken: 
+    	etcdclustertoken:
 # etcd数据目录
   -etcddatadir string
     	etcd data-dir: /var/lib/etcd (default "/var/lib/etcd")
@@ -105,7 +105,7 @@
   -dockernetwork string
     	dockernetwork: host|nat (default "host")
 
-# ----------------------远程主机备份--------------------  
+# ----------------------远程主机备份--------------------
 # 需要将工具拷贝到远程主机执行时指定
 # 远程主机IP
   -sshhost string
@@ -167,7 +167,7 @@ isencrypt: false
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
+  # 类型
   type: sftp
   # 本地保存路径
   path: /tmp/backupdir
@@ -178,7 +178,7 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
+  # 类型
   type: sftp
   # 本地保存路径
   path: /tmp/backupdir
@@ -199,7 +199,7 @@ storewith:
 ```yaml
 #存储选项
 storewith:
-  # 类型(暂时支持本地存储和sftp)
+  # 类型
   type: ftp
   # 本地保存路径
   path: /tmp/backupdir
@@ -416,7 +416,7 @@ databases:
 >
 >    redis链接数20
 >
->    恢复 5分钟 
+>    恢复 5分钟
 >
 >    备份 14分钟
 
@@ -539,7 +539,7 @@ databases:
     cert: /etc/etcd/ssl/etcd.pem
     # 客户端密钥路径,https=yes时使用
     key: /etc/etcd/ssl/etcd-key.pem
-    
+
 ```
 
 ### 恢复
@@ -570,7 +570,7 @@ databases:
 # -src /tmp/backupdir/etcd/etcd1-2022.01.18.06.06.58/etcd.db 备份的文件路径
 # -dockername etcd1 docker部署时的容器名,非容器跳过此参数
 # -dockernetwork host 网络模式nat/host(默认host),非容器跳过此参数
-./one-backup -mode restore -type etcd -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-cluter-2022.01.18.16.04.05/etcd.db -etcdcluster "etcd1=http://192.168.146.134:12380,etcd2=http://192.168.146.134:22380,etcd3=192.168.146.134:32380" -etcdname etcd1 -etcdclustertoken etcd-cluster -dockername etcd1 
+./one-backup -mode restore -type etcd -datadir /var/lib/etcd -src /tmp/backupdir/etcd/etcd-cluter-2022.01.18.16.04.05/etcd.db -etcdcluster "etcd1=http://192.168.146.134:12380,etcd2=http://192.168.146.134:22380,etcd3=192.168.146.134:32380" -etcdname etcd1 -etcdclustertoken etcd-cluster -dockername etcd1
 ```
 
 远程集群，ssh连接,集群内所有节点都需要还原
